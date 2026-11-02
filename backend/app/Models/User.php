@@ -31,4 +31,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function teacherProfile(): HasOne 
+    {
+        return $this->hasOne(TeacherProfiles::class);
+    }
+
+    public function studentProfiles(): HasOne
+    {
+        return $this->hasOne(StudentProfiles::class);
+    }
 }
