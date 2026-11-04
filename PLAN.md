@@ -447,21 +447,21 @@
 - Consumes: Complete frontend and backend stack.
 - Produces: Production-ready portfolio artifact with verified commands and documentation.
 
-- [ ] **Step 1: Verify Tailwind CSS v4 & shadcn/ui Theme**
+- [x] **Step 1: Verify Tailwind CSS v4 & shadcn/ui Theme**
   - Audit color contrasts, dark mode / light mode tokens, card borders, and font hierarchy.
   - Ensure skeleton loaders display seamlessly during serverless Neon DB cold starts.
-- [ ] **Step 2: Run End-to-End Persona Verification Flow**
+- [x] **Step 2: Run End-to-End Persona Verification Flow**
   - Log in with "Demo Admin" $\rightarrow$ Verify stats, add sample student and classroom.
   - Log in with "Demo Teacher" $\rightarrow$ Take roll call for today, enter 5 new exam scores in bulk grid.
   - Log in with "Demo Student" $\rightarrow$ Confirm updated GPA and newly recorded exam score display instantly.
-- [ ] **Step 3: Verify All Automated Backend & Frontend Tests**
+- [x] **Step 3: Verify All Automated Backend & Frontend Tests**
   - Run: `cd backend && php artisan test`
   - Run: `cd frontend && npm run build && npm run lint`
   - Ensure 100% green pass with zero compiler warnings.
-- [ ] **Step 4: Update README.md with Architecture & Quickstart**
+- [x] **Step 4: Update README.md with Architecture & Quickstart**
   - Document setup steps: `php artisan migrate --seed`, `npm run dev`.
   - Include Demo credentials and role matrix.
-- [ ] **Step 5: Final Commit**
+- [x] **Step 5: Final Commit**
   ```bash
   git add .
   git commit -m "chore(release): complete portfolio-ready School Management System"
