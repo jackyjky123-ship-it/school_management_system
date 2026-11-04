@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Admin\SubjectController;
 use App\Http\Controllers\Api\V1\Admin\TeacherController;
 use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\GradeController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,13 @@ Route::prefix('v1')->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
             Route::post('/logout', [AuthController::class, 'logout']);
         });
+    });
+
+    // Role-Scoped Dashboard Analytics
+    Route::middleware('auth:sanctum')->prefix('dashboard')->group(function () {
+        Route::get('/admin', [DashboardController::class, 'adminMetrics'])->middleware('role:admin');
+        Route::get('/teacher', [DashboardController::class, 'teacherMetrics'])->middleware('role:teacher');
+        Route::get('/student', [DashboardController::class, 'studentMetrics'])->middleware('role:student');
     });
 
     // Authenticated Academic Operations (Shared / Role Governed)
