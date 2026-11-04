@@ -56,7 +56,8 @@ class StudentController extends Controller
                 'is_active' => true,
             ]);
 
-            $user->assignRole(RoleEnums::STUDENT->value);
+            $role = Role::findOrCreate(RoleEnums::STUDENT->value, 'sanctum');
+            $user->assignRole($role);
 
             return StudentProfile::create([
                 'user_id' => $user->id,

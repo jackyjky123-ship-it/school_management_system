@@ -63,7 +63,7 @@ class GradeController extends Controller
 
         // Authorization check: Admin has full access, Teacher must be assigned to the subject
         if (!$user->hasRole('admin')) {
-            if (!$user->hasRole('teacher') || !$user->teacherProfile || $subject->teacher_id !== $user->teacherProfile->id) {
+            if (!$user->hasRole('teacher') || !$user->teacherProfile || (int)$subject->teacher_id !== (int)$user->teacherProfile->id) {
                 return $this->errorResponse('You are not authorized to grade this subject.', 403);
             }
         }

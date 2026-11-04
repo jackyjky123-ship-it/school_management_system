@@ -53,7 +53,8 @@ class TeacherController extends Controller
                 'is_active' => true,
             ]);
 
-            $user->assignRole(RoleEnums::TEACHER->value);
+            $role = Role::findOrCreate(RoleEnums::TEACHER->value, 'sanctum');
+            $user->assignRole($role);
 
             return TeacherProfile::create([
                 'user_id' => $user->id,

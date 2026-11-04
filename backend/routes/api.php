@@ -48,9 +48,9 @@ Route::prefix('v1')->group(function () {
 
     // Role-Scoped Dashboard Analytics
     Route::middleware('auth:sanctum')->prefix('dashboard')->group(function () {
-        Route::get('/admin', [DashboardController::class, 'adminMetrics'])->middleware('role:admin');
-        Route::get('/teacher', [DashboardController::class, 'teacherMetrics'])->middleware('role:teacher');
-        Route::get('/student', [DashboardController::class, 'studentMetrics'])->middleware('role:student');
+        Route::get('/admin', [DashboardController::class, 'adminMetrics'])->middleware('role:admin,sanctum');
+        Route::get('/teacher', [DashboardController::class, 'teacherMetrics'])->middleware('role:teacher,sanctum');
+        Route::get('/student', [DashboardController::class, 'studentMetrics'])->middleware('role:student,sanctum');
     });
 
     // Authenticated Academic Operations (Shared / Role Governed)
@@ -65,7 +65,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Admin Management Endpoints
-    Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+    Route::middleware(['auth:sanctum', 'role:admin,sanctum'])->prefix('admin')->group(function () {
         Route::apiResource('classrooms', ClassroomController::class);
         Route::apiResource('teachers', TeacherController::class);
         Route::apiResource('students', StudentController::class);
