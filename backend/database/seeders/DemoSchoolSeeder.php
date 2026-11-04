@@ -21,9 +21,9 @@ class DemoSchoolSeeder extends Seeder
     public function run(): void
     {
         // 1. Create Roles
-        $adminRole = Role::findOrCreate(RoleEnums::ADMIN->value);
-        $teacherRole = Role::findOrCreate(RoleEnums::TEACHER->value);
-        $studentRole = Role::findOrCreate(RoleEnums::STUDENT->value);
+        $adminRole = Role::findOrCreate(RoleEnums::ADMIN->value, 'sanctum');
+        $teacherRole = Role::findOrCreate(RoleEnums::TEACHER->value, 'sanctum');
+        $studentRole = Role::findOrCreate(RoleEnums::STUDENT->value, 'sanctum');
 
         $defaultPassword = Hash::make('password');
 

@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\ClassroomController;
+use App\Http\Controllers\Api\V1\Admin\StudentController;
+use App\Http\Controllers\Api\V1\Admin\SubjectController;
+use App\Http\Controllers\Api\V1\Admin\TeacherController;
 use App\Http\Controllers\Api\V1\AuthController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -37,5 +41,13 @@ Route::prefix('v1')->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
             Route::post('/logout', [AuthController::class, 'logout']);
         });
+    });
+
+    // Admin Endpoints
+    Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+        Route::apiResource('classrooms', ClassroomController::class);
+        Route::apiResource('teachers', TeacherController::class);
+        Route::apiResource('students', StudentController::class);
+        Route::apiResource('subjects', SubjectController::class);
     });
 });

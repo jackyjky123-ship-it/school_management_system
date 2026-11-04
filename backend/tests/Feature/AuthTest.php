@@ -15,9 +15,9 @@ class AuthTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Role::findOrCreate(RoleEnums::ADMIN->value);
-        Role::findOrCreate(RoleEnums::TEACHER->value);
-        Role::findOrCreate(RoleEnums::STUDENT->value);
+        Role::findOrCreate(RoleEnums::ADMIN->value, 'sanctum');
+        Role::findOrCreate(RoleEnums::TEACHER->value, 'sanctum');
+        Role::findOrCreate(RoleEnums::STUDENT->value, 'sanctum');
     }
 
     public function test_user_can_login_with_valid_credentials(): void
