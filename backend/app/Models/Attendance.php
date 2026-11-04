@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('attendances')]
-#[Fillable(['student_id', 'classroom_id', 'date', 'status', 'remarks', 'recorded_by'])]
+#[Fillable(['student_id', 'classroom_id', 'subject_id', 'date', 'status', 'remarks', 'recorded_by'])]
 class Attendance extends Model
 {
     use HasFactory;
@@ -31,6 +31,11 @@ class Attendance extends Model
     public function classroom(): BelongsTo
     {
         return $this->belongsTo(Classroom::class);
+    }
+
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(Subject::class);
     }
 
     public function recorder(): BelongsTo

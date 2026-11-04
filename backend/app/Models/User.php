@@ -6,18 +6,19 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
-#[Table('user')]
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * Get the attributes that should be cast.
@@ -34,11 +35,11 @@ class User extends Authenticatable
 
     public function teacherProfile(): HasOne 
     {
-        return $this->hasOne(TeacherProfiles::class);
+        return $this->hasOne(TeacherProfile::class);
     }
 
-    public function studentProfiles(): HasOne
+    public function studentProfile(): HasOne
     {
-        return $this->hasOne(StudentProfiles::class);
+        return $this->hasOne(StudentProfile::class);
     }
 }
