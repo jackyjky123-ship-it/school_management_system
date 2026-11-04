@@ -4,7 +4,9 @@ use App\Http\Controllers\Api\V1\Admin\ClassroomController;
 use App\Http\Controllers\Api\V1\Admin\StudentController;
 use App\Http\Controllers\Api\V1\Admin\SubjectController;
 use App\Http\Controllers\Api\V1\Admin\TeacherController;
+use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\GradeController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -43,7 +45,18 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    // Admin Endpoints
+    // Authenticated Academic Operations (Shared / Role Governed)
+    Route::middleware('auth:sanctum')->group(function () {
+        // Attendance Endpoints
+        Route::get('/attendances', [AttendanceController::class, 'index']);
+        Route::post('/attendances/batch', [AttendanceController::class, 'batchStore']);
+
+        // Grade Endpoints
+        Route::get('/grades', [GradeController::class, 'index']);
+        Route::post('/grades/batch', [GradeController::class, 'batchStore']);
+    });
+
+    // Admin Management Endpoints
     Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
         Route::apiResource('classrooms', ClassroomController::class);
         Route::apiResource('teachers', TeacherController::class);
