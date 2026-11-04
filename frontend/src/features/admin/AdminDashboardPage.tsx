@@ -15,7 +15,6 @@ import {
   CalendarCheck,
   TrendingUp,
   ArrowRight,
-  ShieldCheck,
 } from "lucide-react";
 
 interface AdminDashboardData {
