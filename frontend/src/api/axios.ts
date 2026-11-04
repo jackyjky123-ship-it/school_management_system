@@ -23,10 +23,10 @@ apiClient.interceptors.request.use(
 // Handle expired/invalid tokens (401) globally
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  (error: AxiosError<{ message?: string; errors?: Record<string, string[]> }>) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("sms_auth_token");
-      if (window.location.pathname !== "/login") {
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }

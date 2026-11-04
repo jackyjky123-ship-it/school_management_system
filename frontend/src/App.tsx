@@ -1,83 +1,100 @@
-import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/api/axios";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Database, Server, Cpu } from "lucide-react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { LoginPage } from "@/features/auth/LoginPage";
+import { AppShell } from "@/components/layout/AppShell";
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { Toaster } from "@/components/ui/sonner";
 
-interface HealthResponse {
-  status: string;
-  laravel_version: string;
-  message: string;
-  database: string;
-  timestamp: string;
-}
+// Admin Pages
+import {
+  AdminDashboardPage,
+  ClassroomsManagementPage,
+  SubjectsManagementPage,
+  TeachersManagementPage,
+  StudentsManagementPage,
+} from "@/features/admin";
+
+// Teacher Pages
+import {
+  TeacherDashboardPage,
+  DailyAttendancePage,
+  BulkGradingPage,
+} from "@/features/teacher";
+
+// Student Pages
+import {
+  StudentDashboardPage,
+  StudentReportCardPage,
+  StudentAttendancePage,
+} from "@/features/student";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2, // 2 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const RootRedirect = () => {
+  const { user, role, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (role === "admin") return <Navigate to="/admin" replace />;
+  if (role === "teacher") return <Navigate to="/teacher" replace />;
+  return <Navigate to="/student" replace />;
+};
 
 export default function App() {
-  const { data, isLoading, isError, refetch, isFetching } = useQuery<HealthResponse>({
-    queryKey: ["system-health"],
-    queryFn: async () => {
-      const response = await apiClient.get<HealthResponse>("/health");
-      return response.data;
-    },
-  });
-
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <Card className="w-full max-w-md shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
-            <CardTitle className="text-xl font-bold">School Management System</CardTitle>
-            <CardDescription>Phase 1: Laravel 13 + Neon + shadcn/ui</CardDescription>
-          </div>
-          <Badge variant={isError ? "destructive" : data?.status === "ok" ? "default" : "secondary"}>
-            {isLoading ? "Checking..." : isError ? "Offline" : "Connected"}
-          </Badge>
-        </CardHeader>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public Auth */}
+            <Route path="/login" element={<LoginPage />} />
 
-        <CardContent className="space-y-4 pt-4">
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-5 w-full" />
-              <Skeleton className="h-5 w-3/4" />
-            </div>
-          ) : isError ? (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-              Cannot reach Laravel 13 API at <code>/api/v1/health</code>. Check <code>php artisan serve</code> and your Neon <code>.env</code> credentials.
-            </div>
-          ) : (
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-2 text-slate-700">
-                <Server className="h-4 w-4 text-emerald-600" />
-                <span>{data?.message}</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-700">
-                <Cpu className="h-4 w-4 text-purple-600" />
-                <span>
-                  Laravel Version: <strong className="font-mono">{data?.laravel_version}</strong>
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-700">
-                <Database className="h-4 w-4 text-blue-600" />
-                <span>
-                  Neon Database: <strong className="font-mono">{data?.database}</strong>
-                </span>
-              </div>
-            </div>
-          )}
+            {/* Root Dispatcher */}
+            <Route path="/" element={<RootRedirect />} />
 
-          <Button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            variant="outline"
-            className="w-full"
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-            Re-test Connection
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+            {/* Admin Portal */}
+            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+              <Route path="/admin" element={<AppShell />}>
+                <Route index element={<AdminDashboardPage />} />
+                <Route path="classrooms" element={<ClassroomsManagementPage />} />
+                <Route path="subjects" element={<SubjectsManagementPage />} />
+                <Route path="teachers" element={<TeachersManagementPage />} />
+                <Route path="students" element={<StudentsManagementPage />} />
+              </Route>
+            </Route>
+
+            {/* Teacher Portal */}
+            <Route element={<ProtectedRoute allowedRoles={["teacher"]} />}>
+              <Route path="/teacher" element={<AppShell />}>
+                <Route index element={<TeacherDashboardPage />} />
+                <Route path="attendance" element={<DailyAttendancePage />} />
+                <Route path="grades" element={<BulkGradingPage />} />
+              </Route>
+            </Route>
+
+            {/* Student Portal */}
+            <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+              <Route path="/student" element={<AppShell />}>
+                <Route index element={<StudentDashboardPage />} />
+                <Route path="report-card" element={<StudentReportCardPage />} />
+                <Route path="attendance" element={<StudentAttendancePage />} />
+              </Route>
+            </Route>
+
+            {/* Fallback */}
+            <Route path="*" element={<RootRedirect />} />
+          </Routes>
+        </BrowserRouter>
+        <Toaster position="top-right" richColors />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
