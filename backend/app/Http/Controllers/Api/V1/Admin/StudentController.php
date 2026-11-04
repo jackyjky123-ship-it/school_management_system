@@ -24,16 +24,18 @@ class StudentController extends Controller
     {
         $query = StudentProfile::with(['user', 'classroom']);
 
-        if ($request->has('classroom_id')) {
+        if ($request->filled('classroom_id')) {
             $query->where('classroom_id', $request->query('classroom_id'));
         }
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->query('search');
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            })->orWhere('student_code', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })->orWhere('student_code', 'like', "%{$search}%");
+            });
         }
 
         $students = $query->latest()->get();
@@ -91,22 +93,18 @@ class StudentController extends Controller
         $validated = $request->validated();
 
         DB::transaction(function () use ($student, $validated) {
-            if (isset($validated['name']) || isset($validated['email'])) {
-                $student->user->update(array_filter([
-                    'name' => $validated['name'] ?? null,
-                    'email' => $validated['email'] ?? null,
-                ]));
+            $userData = array_intersect_key($validated, array_flip(['name', 'email']));
+
+            if (! empty($userData)) {
+                $student->user->update($userData);
             }
 
-            $student->update(array_filter([
-                'student_code' => $validated['student_code'] ?? null,
-                'classroom_id' => $validated['classroom_id'] ?? $student->classroom_id,
-                'gender' => $validated['gender'] ?? null,
-                'date_of_birth' => $validated['date_of_birth'] ?? null,
-                'guardian_name' => $validated['guardian_name'] ?? null,
-                'guardian_phone' => $validated['guardian_phone'] ?? null,
-                'address' => $validated['address'] ?? null,
-            ]));
+            // Keep explicitly submitted nulls so optional fields can be cleared.
+            $profileData = array_diff_key($validated, array_flip(['name', 'email']));
+
+            if (! empty($profileData)) {
+                $student->update($profileData);
+            }
         });
 
         return $this->successResponse(

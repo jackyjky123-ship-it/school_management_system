@@ -20,10 +20,12 @@ class ClassroomController extends Controller
         $query = Classroom::with(['homeroomTeacher.user'])
             ->withCount(['students', 'subjects']);
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->query('search');
-            $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('grade_level', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('grade_level', 'like', "%{$search}%");
+            });
         }
 
         $classrooms = $query->latest()->get();

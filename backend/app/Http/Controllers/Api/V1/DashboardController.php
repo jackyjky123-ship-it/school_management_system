@@ -33,16 +33,22 @@ class DashboardController extends Controller
     public function adminMetrics(Request $request): JsonResponse
     {
         $todayStr = now()->toDateString();
-        $todayAttendances = Attendance::where('date', $todayStr)->get();
-        $todayCount = $todayAttendances->count();
-        $presentCount = $todayAttendances->whereIn('status', [
-            AttendanceStatusEnum::PRESENT,
-            AttendanceStatusEnum::LATE,
-            'present',
-            'late',
-        ])->count();
+        $presentStatuses = [
+            AttendanceStatusEnum::PRESENT->value,
+            AttendanceStatusEnum::LATE->value,
+        ];
 
-        $todayRate = $todayCount > 0 ? round(($presentCount / $todayCount) * 100, 1) : 100.0;
+        // Homeroom roll call only: subject attendance duplicates a student on the same day.
+        $todayQuery = Attendance::query()
+            ->where('date', $todayStr)
+            ->whereNull('subject_id');
+
+        $todayCount = (clone $todayQuery)->distinct()->count('student_id');
+        $presentCount = (clone $todayQuery)
+            ->whereIn('status', $presentStatuses)
+            ->distinct()
+            ->count('student_id');
+        $todayRate = $todayCount > 0 ? round(($presentCount / $todayCount) * 100, 1) : 0.0;
 
         $classroomDist = Classroom::withCount('students')->get()->map(function ($c) {
             return [
@@ -58,6 +64,7 @@ class DashboardController extends Controller
             'total_teachers' => TeacherProfile::count(),
             'total_classrooms' => Classroom::count(),
             'total_subjects' => Subject::count(),
+            'today_attendance_recorded' => $todayCount > 0,
             'today_attendance_rate' => $todayRate,
             'classroom_distribution' => $classroomDist,
         ], 'Admin dashboard metrics retrieved successfully');
@@ -71,7 +78,7 @@ class DashboardController extends Controller
         $user = $request->user();
         $teacher = $user->teacherProfile;
 
-        if (!$teacher) {
+        if (! $teacher) {
             return $this->errorResponse('Teacher profile not found', 404);
         }
 
@@ -80,8 +87,20 @@ class DashboardController extends Controller
 
         $todayStr = now()->toDateString();
         $homeroomIds = $homeroomClasses->pluck('id');
-        $hasTakenAttendanceToday = $homeroomIds->isNotEmpty() 
-            && Attendance::whereIn('classroom_id', $homeroomIds)->where('date', $todayStr)->exists();
+        $homeroomStudentIds = StudentProfile::query()
+            ->whereIn('classroom_id', $homeroomIds)
+            ->pluck('id');
+        $recordedStudentIds = Attendance::query()
+            ->whereIn('classroom_id', $homeroomIds)
+            ->where('date', $todayStr)
+            ->whereNull('subject_id')
+            ->pluck('student_id')
+            ->unique();
+
+        // Complete only when every homeroom student has a homeroom record today.
+        $hasTakenAttendanceToday = $homeroomIds->isNotEmpty()
+            && $homeroomStudentIds->isNotEmpty()
+            && $homeroomStudentIds->diff($recordedStudentIds)->isEmpty();
 
         $recentGrades = Grade::with(['student.user', 'subject'])
             ->where('graded_by', $user->id)
@@ -91,16 +110,17 @@ class DashboardController extends Controller
 
         return $this->successResponse([
             'today_roll_call_completed' => $hasTakenAttendanceToday,
-            'assigned_classrooms' => $homeroomClasses->map(fn($c) => [
+            'assigned_classrooms' => $homeroomClasses->map(fn ($c) => [
                 'id' => $c->id,
                 'name' => $c->name,
                 'grade_level' => $c->grade_level,
                 'students_count' => $c->students_count,
             ]),
-            'assigned_subjects' => $subjects->map(fn($s) => [
+            'assigned_subjects' => $subjects->map(fn ($s) => [
                 'id' => $s->id,
                 'name' => $s->name,
                 'code' => $s->code,
+                'classroom_id' => $s->classroom_id,
                 'classroom_name' => $s->classroom?->name,
             ]),
             'recent_grades' => GradeResource::collection($recentGrades),
@@ -115,7 +135,7 @@ class DashboardController extends Controller
         $user = $request->user();
         $student = $user->studentProfile;
 
-        if (!$student) {
+        if (! $student) {
             return $this->errorResponse('Student profile not found', 404);
         }
 
@@ -123,20 +143,21 @@ class DashboardController extends Controller
         $grades = $student->grades()->with(['subject', 'grader'])->latest()->get();
         $gradeSummary = $this->calculationService->calculateStudentSummary($grades);
 
-        // Attendance calculation
-        $attendances = $student->attendances()->latest('date')->get();
+        // Attendance calculation: homeroom records represent one school day each.
+        $attendances = $student->attendances()
+            ->whereNull('subject_id')
+            ->latest('date')
+            ->get();
         $totalDays = $attendances->count();
         $presentDays = $attendances->whereIn('status', [
             AttendanceStatusEnum::PRESENT,
             AttendanceStatusEnum::LATE,
-            'present',
-            'late',
         ])->count();
-        $attendanceRate = $totalDays > 0 ? round(($presentDays / $totalDays) * 100, 1) : 100.0;
+        $attendanceRate = $totalDays > 0 ? round(($presentDays / $totalDays) * 100, 1) : 0.0;
 
         // Enrolled Subjects
         $enrolledSubjects = $student->classroom
-            ? $student->classroom->subjects()->with('teacher.user')->get()->map(fn($s) => [
+            ? $student->classroom->subjects()->with('teacher.user')->get()->map(fn ($s) => [
                 'id' => $s->id,
                 'name' => $s->name,
                 'code' => $s->code,

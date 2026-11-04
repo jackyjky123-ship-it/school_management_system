@@ -27,11 +27,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) 
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Redirect to the default dashboard for their role
+  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
+    // Redirect to the default dashboard for their role, or login if invalid
     if (role === "admin") return <Navigate to="/admin" replace />;
     if (role === "teacher") return <Navigate to="/teacher" replace />;
-    return <Navigate to="/student" replace />;
+    if (role === "student") return <Navigate to="/student" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;

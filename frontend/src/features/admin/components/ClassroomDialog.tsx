@@ -51,6 +51,8 @@ export const ClassroomDialog: React.FC<ClassroomDialogProps> = ({
   });
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (classroomToEdit) {
       reset({
         name: classroomToEdit.name || "",
@@ -68,7 +70,7 @@ export const ClassroomDialog: React.FC<ClassroomDialogProps> = ({
         homeroom_teacher_id: "",
       });
     }
-  }, [classroomToEdit, reset]);
+  }, [classroomToEdit, isOpen, reset]);
 
   const mutation = useMutation({
     mutationFn: async (data: ClassroomFormData) => {

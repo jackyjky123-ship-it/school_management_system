@@ -24,13 +24,15 @@ class TeacherController extends Controller
     {
         $query = TeacherProfile::with(['user', 'homeroomClassrooms', 'subjects']);
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->query('search');
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            })->orWhere('employee_code', 'like', "%{$search}%")
-              ->orWhere('specialization', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })->orWhere('employee_code', 'like', "%{$search}%")
+                    ->orWhere('specialization', 'like', "%{$search}%");
+            });
         }
 
         $teachers = $query->latest()->get();
@@ -85,19 +87,18 @@ class TeacherController extends Controller
         $validated = $request->validated();
 
         DB::transaction(function () use ($teacher, $validated) {
-            if (isset($validated['name']) || isset($validated['email'])) {
-                $teacher->user->update(array_filter([
-                    'name' => $validated['name'] ?? null,
-                    'email' => $validated['email'] ?? null,
-                ]));
+            $userData = array_intersect_key($validated, array_flip(['name', 'email']));
+
+            if (! empty($userData)) {
+                $teacher->user->update($userData);
             }
 
-            $teacher->update(array_filter([
-                'employee_code' => $validated['employee_code'] ?? null,
-                'specialization' => $validated['specialization'] ?? null,
-                'phone' => $validated['phone'] ?? null,
-                'hire_date' => $validated['hire_date'] ?? null,
-            ]));
+            // Keep explicitly submitted nulls so optional fields can be cleared.
+            $profileData = array_diff_key($validated, array_flip(['name', 'email']));
+
+            if (! empty($profileData)) {
+                $teacher->update($profileData);
+            }
         });
 
         return $this->successResponse(

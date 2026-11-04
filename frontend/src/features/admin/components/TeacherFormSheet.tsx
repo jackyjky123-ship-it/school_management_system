@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/axios";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { toLocalDateInputValue } from "@/lib/date";
 
 const teacherSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -53,6 +54,8 @@ export const TeacherFormSheet: React.FC<TeacherFormSheetProps> = ({
   });
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (teacherToEdit) {
       reset({
         name: teacherToEdit.name || "",
@@ -69,10 +72,10 @@ export const TeacherFormSheet: React.FC<TeacherFormSheetProps> = ({
         employee_code: `TCH-${Math.floor(100 + Math.random() * 900)}`,
         specialization: "",
         phone: "",
-        hire_date: new Date().toISOString().split("T")[0],
+        hire_date: toLocalDateInputValue(),
       });
     }
-  }, [teacherToEdit, reset]);
+  }, [teacherToEdit, isOpen, reset]);
 
   const mutation = useMutation({
     mutationFn: async (data: TeacherFormData) => {

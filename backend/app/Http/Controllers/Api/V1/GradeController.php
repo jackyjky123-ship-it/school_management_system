@@ -21,25 +21,37 @@ class GradeController extends Controller
         $user = $request->user();
         $query = Grade::with(['student.user', 'subject', 'grader']);
 
-        // Student privacy isolation
+        // Student privacy isolation: students only ever see their own records.
         if ($user->hasRole('student')) {
-            $studentProfileId = $user->studentProfile?->id;
-            $query->where('student_id', $studentProfileId);
+            $query->where('student_id', $user->studentProfile?->id);
         } else {
-            if ($request->has('student_id')) {
+            // Teachers may only read grades for subjects assigned to them.
+            if (! $user->hasRole('admin')) {
+                $teacher = $user->teacherProfile;
+
+                if (! $teacher) {
+                    return $this->errorResponse('Teacher profile not found.', 403);
+                }
+
+                $query->whereIn('subject_id', Subject::query()
+                    ->select('id')
+                    ->where('teacher_id', $teacher->id));
+            }
+
+            if ($request->filled('student_id')) {
                 $query->where('student_id', $request->query('student_id'));
             }
         }
 
-        if ($request->has('subject_id')) {
+        if ($request->filled('subject_id')) {
             $query->where('subject_id', $request->query('subject_id'));
         }
 
-        if ($request->has('term')) {
+        if ($request->filled('term')) {
             $query->where('term', $request->query('term'));
         }
 
-        if ($request->has('exam_type')) {
+        if ($request->filled('exam_type')) {
             $query->where('exam_type', $request->query('exam_type'));
         }
 
@@ -62,8 +74,8 @@ class GradeController extends Controller
         $subject = Subject::findOrFail($subjectId);
 
         // Authorization check: Admin has full access, Teacher must be assigned to the subject
-        if (!$user->hasRole('admin')) {
-            if (!$user->hasRole('teacher') || !$user->teacherProfile || (int)$subject->teacher_id !== (int)$user->teacherProfile->id) {
+        if (! $user->hasRole('admin')) {
+            if (! $user->hasRole('teacher') || ! $user->teacherProfile || (int) $subject->teacher_id !== (int) $user->teacherProfile->id) {
                 return $this->errorResponse('You are not authorized to grade this subject.', 403);
             }
         }

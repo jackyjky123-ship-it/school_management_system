@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TeacherFormSheet } from "./components/TeacherFormSheet";
 import { toast } from "sonner";
-import { Search, Plus, Edit2, Trash2, Users, BookOpen } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Users, BookOpen, AlertCircle } from "lucide-react";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 interface Teacher {
   id: number;
@@ -26,14 +27,19 @@ interface Teacher {
 export const TeachersManagementPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
 
-  const { data: teachers = [], isLoading } = useQuery<Teacher[]>({
-    queryKey: ["admin-teachers", searchTerm],
+  const {
+    data: teachers = [],
+    isLoading,
+    isError,
+  } = useQuery<Teacher[]>({
+    queryKey: ["admin-teachers", debouncedSearch],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchTerm) params.append("search", searchTerm);
+      if (debouncedSearch) params.append("search", debouncedSearch);
       const res = await apiClient.get<ApiResponse<Teacher[]>>(`/admin/teachers?${params.toString()}`);
       return res.data.data;
     },
@@ -95,6 +101,13 @@ export const TeachersManagementPage: React.FC = () => {
           className="pl-9 bg-white dark:bg-slate-900"
         />
       </div>
+
+      {isError && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Unable to load faculty directory. Please verify server connectivity and refresh.</p>
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
         <div className="overflow-x-auto">

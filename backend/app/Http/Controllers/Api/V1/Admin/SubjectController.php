@@ -19,18 +19,20 @@ class SubjectController extends Controller
     {
         $query = Subject::with(['classroom', 'teacher.user']);
 
-        if ($request->has('classroom_id')) {
+        if ($request->filled('classroom_id')) {
             $query->where('classroom_id', $request->query('classroom_id'));
         }
 
-        if ($request->has('teacher_id')) {
+        if ($request->filled('teacher_id')) {
             $query->where('teacher_id', $request->query('teacher_id'));
         }
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->query('search');
-            $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
         }
 
         $subjects = $query->latest()->get();

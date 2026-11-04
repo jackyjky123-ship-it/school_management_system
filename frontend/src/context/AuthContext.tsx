@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/axios";
 import { ApiResponse, AuthData, LoginPayload, Role, User } from "@/types/auth";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("sms_auth_token"));
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -45,11 +47,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchCurrentUser();
   }, []);
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      queryClient.clear();
+      setUser(null);
+      setToken(null);
+      toast.error("Your session has expired. Please sign in again.");
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    };
+  }, [queryClient]);
+
   const login = async (payload: LoginPayload): Promise<User> => {
     setIsLoading(true);
     try {
       const response = await apiClient.post<ApiResponse<AuthData>>("/auth/login", payload);
       const authData = response.data.data;
+      queryClient.clear();
       localStorage.setItem("sms_auth_token", authData.token);
       setToken(authData.token);
       setUser(authData.user);
@@ -69,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await apiClient.post<ApiResponse<AuthData>>(`/auth/demo/${targetRole}`);
       const authData = response.data.data;
+      queryClient.clear();
       localStorage.setItem("sms_auth_token", authData.token);
       setToken(authData.token);
       setUser(authData.user);
@@ -90,6 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Ignore network errors on logout
     } finally {
       localStorage.removeItem("sms_auth_token");
+      queryClient.clear();
       setUser(null);
       setToken(null);
       toast.info("You have been logged out");

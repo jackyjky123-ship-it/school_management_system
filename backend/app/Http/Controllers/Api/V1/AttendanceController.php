@@ -22,25 +22,46 @@ class AttendanceController extends Controller
         $user = $request->user();
         $query = Attendance::with(['student.user', 'classroom', 'subject', 'recorder']);
 
-        // Student privacy isolation
+        // Student privacy isolation: students only ever see their own records.
         if ($user->hasRole('student')) {
-            $studentProfileId = $user->studentProfile?->id;
-            $query->where('student_id', $studentProfileId);
+            $query->where('student_id', $user->studentProfile?->id);
         } else {
-            if ($request->has('student_id')) {
+            // Teachers may only read attendance for classrooms and subjects they own.
+            if (! $user->hasRole('admin')) {
+                $teacher = $user->teacherProfile;
+
+                if (! $teacher) {
+                    return $this->errorResponse('Teacher profile not found.', 403);
+                }
+
+                $query->where(function ($scope) use ($teacher) {
+                    $scope->whereIn('classroom_id', Classroom::query()
+                        ->select('id')
+                        ->where('homeroom_teacher_id', $teacher->id))
+                        ->orWhereIn('subject_id', Subject::query()
+                            ->select('id')
+                            ->where('teacher_id', $teacher->id));
+                });
+            }
+
+            if ($request->filled('student_id')) {
                 $query->where('student_id', $request->query('student_id'));
             }
         }
 
-        if ($request->has('classroom_id')) {
+        if ($request->filled('classroom_id')) {
             $query->where('classroom_id', $request->query('classroom_id'));
         }
 
-        if ($request->has('subject_id')) {
+        if ($request->filled('subject_id')) {
             $query->where('subject_id', $request->query('subject_id'));
         }
 
-        if ($request->has('date')) {
+        if ($request->boolean('homeroom')) {
+            $query->whereNull('subject_id');
+        }
+
+        if ($request->filled('date')) {
             $query->where('date', $request->query('date'));
         }
 
@@ -61,8 +82,8 @@ class AttendanceController extends Controller
         $date = $validated['date'];
 
         // Authorization check: Admin has full access, Teacher must be homeroom or subject teacher
-        if (!$user->hasRole('admin')) {
-            if (!$user->hasRole('teacher') || !$user->teacherProfile) {
+        if (! $user->hasRole('admin')) {
+            if (! $user->hasRole('teacher') || ! $user->teacherProfile) {
                 return $this->errorResponse('Unauthorized to record attendance', 403);
             }
 
@@ -70,12 +91,12 @@ class AttendanceController extends Controller
 
             if ($subjectId) {
                 $subject = Subject::find($subjectId);
-                if (!$subject || $subject->teacher_id !== $teacherProfileId) {
+                if (! $subject || $subject->teacher_id !== $teacherProfileId) {
                     return $this->errorResponse('You are not authorized to take attendance for this subject', 403);
                 }
             } else {
                 $classroom = Classroom::find($classroomId);
-                if (!$classroom || $classroom->homeroom_teacher_id !== $teacherProfileId) {
+                if (! $classroom || $classroom->homeroom_teacher_id !== $teacherProfileId) {
                     return $this->errorResponse('You are not authorized as homeroom teacher for this classroom', 403);
                 }
             }

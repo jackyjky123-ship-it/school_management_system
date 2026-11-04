@@ -13,11 +13,12 @@ import {
   AttendanceStatus,
 } from "./components/AttendanceRosterTable";
 import { toast } from "sonner";
-import { Check, ClipboardCheck, Loader2, Calendar } from "lucide-react";
+import { Check, ClipboardCheck, Loader2, Calendar, AlertCircle } from "lucide-react";
+import { toLocalDateInputValue } from "@/lib/date";
 
 export const DailyAttendancePage: React.FC = () => {
   const queryClient = useQueryClient();
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = toLocalDateInputValue();
 
   const [selectedClassroomId, setSelectedClassroomId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
@@ -41,25 +42,35 @@ export const DailyAttendancePage: React.FC = () => {
     }
   }, [homeroomClassrooms, selectedClassroomId]);
 
-  // 2. Fetch Students in the selected classroom
-  const { data: students = [], isLoading: loadingStudents } = useQuery({
+  // 2. Fetch students through the classroom-scoped roster endpoint.
+  // Teachers are not allowed to call the admin-only student directory.
+  const {
+    data: students = [],
+    isLoading: loadingStudents,
+    isError: studentsError,
+  } = useQuery({
     queryKey: ["classroom-students", selectedClassroomId],
     enabled: !!selectedClassroomId,
     queryFn: async () => {
       const res = await apiClient.get<ApiResponse<any[]>>(
-        `/admin/students?classroom_id=${selectedClassroomId}`
+        `/classrooms/${selectedClassroomId}/students`
       );
       return res.data.data;
     },
   });
 
-  // 3. Fetch Existing Attendance for this date & class
-  const { data: existingAttendance = [], isLoading: loadingAttendance } = useQuery({
+  // 3. Fetch existing homeroom attendance for this date and class.
+  // Subject-level records must not overwrite the homeroom status in this view.
+  const {
+    data: existingAttendance = [],
+    isLoading: loadingAttendance,
+    isError: attendanceError,
+  } = useQuery({
     queryKey: ["classroom-attendance", selectedClassroomId, selectedDate],
     enabled: !!selectedClassroomId && !!selectedDate,
     queryFn: async () => {
       const res = await apiClient.get<ApiResponse<any[]>>(
-        `/attendances?classroom_id=${selectedClassroomId}&date=${selectedDate}`
+        `/attendances?classroom_id=${selectedClassroomId}&date=${selectedDate}&homeroom=1`
       );
       return res.data.data;
     },
@@ -67,28 +78,32 @@ export const DailyAttendancePage: React.FC = () => {
 
   // Merge students with existing attendance records
   useEffect(() => {
-    if (students.length > 0) {
-      const attendanceMap = new Map<number, { status: AttendanceStatus; remarks: string }>();
-      existingAttendance.forEach((att: any) => {
-        attendanceMap.set(att.student_id, {
-          status: att.status as AttendanceStatus,
-          remarks: att.remarks || "",
-        });
-      });
-
-      const rows: AttendanceRow[] = students.map((std: any) => {
-        const existing = attendanceMap.get(std.id);
-        return {
-          student_id: std.id,
-          student_code: std.student_code,
-          name: std.name,
-          status: existing ? existing.status : "present",
-          remarks: existing ? existing.remarks : "",
-        };
-      });
-
-      setRoster(rows);
+    // Clear stale rows when switching to an empty classroom.
+    if (students.length === 0) {
+      setRoster([]);
+      return;
     }
+
+    const attendanceMap = new Map<number, { status: AttendanceStatus; remarks: string }>();
+    existingAttendance.forEach((att: any) => {
+      attendanceMap.set(att.student_id, {
+        status: att.status as AttendanceStatus,
+        remarks: att.remarks || "",
+      });
+    });
+
+    const rows: AttendanceRow[] = students.map((std: any) => {
+      const existing = attendanceMap.get(std.id);
+      return {
+        student_id: std.id,
+        student_code: std.student_code,
+        name: std.name,
+        status: existing ? existing.status : "present",
+        remarks: existing ? existing.remarks : "",
+      };
+    });
+
+    setRoster(rows);
   }, [students, existingAttendance]);
 
   const handleStatusChange = (studentId: number, status: AttendanceStatus) => {
@@ -213,6 +228,7 @@ export const DailyAttendancePage: React.FC = () => {
                 id="date"
                 type="date"
                 value={selectedDate}
+                max={todayStr}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="h-8.5 text-sm"
               />
@@ -220,8 +236,17 @@ export const DailyAttendancePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Counter Badges */}
+        {/* Counter Badges & Status */}
         <div className="flex flex-wrap items-center gap-2">
+          {existingAttendance.length > 0 ? (
+            <Badge className="bg-emerald-600 text-white font-medium">
+              Recorded
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="font-medium text-slate-600 dark:text-slate-300">
+              Not Recorded Yet
+            </Badge>
+          )}
           <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30">
             Present: {presentCount}
           </Badge>
@@ -237,7 +262,12 @@ export const DailyAttendancePage: React.FC = () => {
         </div>
       </div>
 
-      {loadingStudents || loadingAttendance ? (
+      {studentsError || attendanceError ? (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Unable to load this classroom roster. Please refresh the page or contact an administrator.</p>
+        </div>
+      ) : loadingStudents || loadingAttendance ? (
         <div className="space-y-2">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-full" />

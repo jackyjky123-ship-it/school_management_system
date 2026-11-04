@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/axios";
 import { ApiResponse } from "@/types/auth";
@@ -11,7 +11,7 @@ import {
   GradeRow,
 } from "./components/GradingSpreadsheetGrid";
 import { toast } from "sonner";
-import { Save, Loader2, BookOpen } from "lucide-react";
+import { Save, Loader2, BookOpen, AlertCircle } from "lucide-react";
 
 export const BulkGradingPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -40,37 +40,36 @@ export const BulkGradingPage: React.FC = () => {
     }
   }, [assignedSubjects, selectedSubjectId]);
 
-  // Find the selected subject's classroom
+  // Find the selected subject's classroom directly from the dashboard payload.
+  // This avoids calling the admin-only subject detail endpoint as a teacher.
   const activeSubject = assignedSubjects.find(
     (s: any) => String(s.id) === selectedSubjectId
   );
 
-  // 2. Fetch all subjects with classroom details to know which classroom students to fetch
-  const { data: subjectDetails } = useQuery({
-    queryKey: ["subject-details", selectedSubjectId],
-    enabled: !!selectedSubjectId,
-    queryFn: async () => {
-      const res = await apiClient.get<ApiResponse<any>>(`/admin/subjects/${selectedSubjectId}`);
-      return res.data.data;
-    },
-  });
+  const classroomId = activeSubject?.classroom_id;
 
-  const classroomId = subjectDetails?.classroom_id;
-
-  // 3. Fetch students in the classroom
-  const { data: students = [], isLoading: loadingStudents } = useQuery({
+  // Fetch students through the classroom-scoped roster endpoint.
+  const {
+    data: students = [],
+    isLoading: loadingStudents,
+    isError: studentsError,
+  } = useQuery({
     queryKey: ["classroom-students", classroomId],
     enabled: !!classroomId,
     queryFn: async () => {
       const res = await apiClient.get<ApiResponse<any[]>>(
-        `/admin/students?classroom_id=${classroomId}`
+        `/classrooms/${classroomId}/students`
       );
       return res.data.data;
     },
   });
 
   // 4. Fetch existing grades for this subject + term + exam type
-  const { data: existingGrades = [], isLoading: loadingGrades } = useQuery({
+  const {
+    data: existingGrades = [],
+    isLoading: loadingGrades,
+    isError: gradesError,
+  } = useQuery({
     queryKey: ["subject-grades", selectedSubjectId, selectedTerm, selectedExamType],
     enabled: !!selectedSubjectId,
     queryFn: async () => {
@@ -81,33 +80,53 @@ export const BulkGradingPage: React.FC = () => {
     },
   });
 
+  // Keep the latest scale available to the merge effect without making the
+  // effect rebuild (and wipe) rows whenever the scale input changes.
+  const maxScoreRef = useRef(maxScore);
+  useEffect(() => {
+    maxScoreRef.current = maxScore;
+  }, [maxScore]);
+
   // Merge students and existing grades
   useEffect(() => {
-    if (students.length > 0) {
-      const gradeMap = new Map<number, { score: number; max_score: number; remarks: string }>();
-      existingGrades.forEach((g: any) => {
-        gradeMap.set(g.student_id, {
-          score: g.score,
-          max_score: g.max_score,
-          remarks: g.remarks || "",
-        });
-      });
-
-      const newRows: GradeRow[] = students.map((std: any) => {
-        const existing = gradeMap.get(std.id);
-        return {
-          student_id: std.id,
-          student_code: std.student_code,
-          name: std.name,
-          score: existing ? String(existing.score) : "",
-          max_score: existing ? existing.max_score : maxScore,
-          remarks: existing ? existing.remarks : "",
-        };
-      });
-
-      setRows(newRows);
+    // Clear stale rows when switching to a subject with no students.
+    if (students.length === 0) {
+      setRows([]);
+      return;
     }
-  }, [students, existingGrades, maxScore]);
+
+    const gradeMap = new Map<number, { score: number; max_score: number; remarks: string }>();
+    existingGrades.forEach((g: any) => {
+      gradeMap.set(g.student_id, {
+        score: g.score,
+        max_score: g.max_score,
+        remarks: g.remarks || "",
+      });
+    });
+
+    const newRows: GradeRow[] = students.map((std: any) => {
+      const existing = gradeMap.get(std.id);
+      return {
+        student_id: std.id,
+        student_code: std.student_code,
+        name: std.name,
+        score: existing ? String(existing.score) : "",
+        max_score: existing ? existing.max_score : maxScoreRef.current,
+        remarks: existing ? existing.remarks : "",
+      };
+    });
+
+    setRows(newRows);
+  }, [students, existingGrades]);
+
+  const handleMaxScoreChange = (value: string) => {
+    const parsed = Number(value);
+    const nextMaxScore = Number.isFinite(parsed) && parsed > 0 ? parsed : 100;
+    setMaxScore(nextMaxScore);
+    setRows((previous) =>
+      previous.map((row) => ({ ...row, max_score: nextMaxScore }))
+    );
+  };
 
   const handleScoreChange = (studentId: number, score: string) => {
     setRows((prev) =>
@@ -135,6 +154,18 @@ export const BulkGradingPage: React.FC = () => {
 
       if (validRecords.length === 0) {
         throw new Error("Please enter at least one student grade before saving.");
+      }
+
+      for (const rec of validRecords) {
+        if (isNaN(rec.score)) {
+          throw new Error("One or more scores are not valid numbers.");
+        }
+        if (rec.score < 0) {
+          throw new Error("Scores cannot be negative.");
+        }
+        if (rec.score > rec.max_score) {
+          throw new Error(`Score (${rec.score}) exceeds maximum scaled score (${rec.max_score}).`);
+        }
       }
 
       const payload = {
@@ -249,14 +280,21 @@ export const BulkGradingPage: React.FC = () => {
             id="max-score"
             type="number"
             min="1"
+            max="999.99"
+            step="0.5"
             value={maxScore}
-            onChange={(e) => setMaxScore(Number(e.target.value) || 100)}
+            onChange={(e) => handleMaxScoreChange(e.target.value)}
             className="h-8.5 text-sm"
           />
         </div>
       </div>
 
-      {loadingStudents || loadingGrades ? (
+      {studentsError || gradesError ? (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Unable to load this grading sheet. Please refresh the page or contact an administrator.</p>
+        </div>
+      ) : loadingStudents || loadingGrades ? (
         <div className="space-y-2">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-full" />

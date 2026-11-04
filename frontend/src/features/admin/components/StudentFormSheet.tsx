@@ -60,7 +60,11 @@ export const StudentFormSheet: React.FC<StudentFormSheetProps> = ({
     },
   });
 
+  const defaultClassroomId = classrooms[0] ? String(classrooms[0].id) : "";
+
   useEffect(() => {
+    if (!isOpen) return;
+
     if (studentToEdit) {
       reset({
         name: studentToEdit.name || "",
@@ -78,7 +82,7 @@ export const StudentFormSheet: React.FC<StudentFormSheetProps> = ({
         name: "",
         email: "",
         student_code: `STD-${Math.floor(1000 + Math.random() * 9000)}`,
-        classroom_id: classrooms[0] ? String(classrooms[0].id) : "",
+        classroom_id: defaultClassroomId,
         gender: "male",
         date_of_birth: "2010-01-15",
         guardian_name: "",
@@ -86,7 +90,7 @@ export const StudentFormSheet: React.FC<StudentFormSheetProps> = ({
         address: "",
       });
     }
-  }, [studentToEdit, reset, classrooms]);
+  }, [studentToEdit, isOpen, reset, defaultClassroomId]);
 
   const mutation = useMutation({
     mutationFn: async (data: StudentFormData) => {

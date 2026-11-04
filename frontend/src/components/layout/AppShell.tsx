@@ -12,11 +12,15 @@ import {
   ShieldCheck,
   School,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Role } from "@/types/auth";
 
 export const AppShell: React.FC = () => {
   const { user, role, logout, demoLogin, isLoading } = useAuth();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -52,9 +56,9 @@ export const AppShell: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-800">
+    <div className="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-800 dark:bg-slate-950 dark:text-slate-100 print:h-auto print:overflow-visible print:bg-white">
       {/* Desktop Sidebar - Dark aesthetic matching design_ref.png */}
-      <aside className="hidden w-64 flex-col bg-[#111218] text-slate-200 md:flex">
+      <aside className="hidden w-64 flex-col bg-[#111218] text-slate-200 md:flex print:hidden">
         {/* Brand Header */}
         <div className="flex h-18 items-center gap-3 px-6 border-b border-white/5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-500/25">
@@ -218,39 +222,41 @@ export const AppShell: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden print:overflow-visible">
         {/* Top Header Navbar */}
-        <header className="flex h-18 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white px-4 sm:px-8 shadow-xs">
+        <header className="flex h-18 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white dark:bg-slate-900 dark:border-slate-800 px-4 sm:px-8 shadow-xs print:hidden">
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 md:hidden"
+              aria-label="Open sidebar navigation"
+              aria-expanded={mobileOpen}
+              className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 md:hidden"
               onClick={() => setMobileOpen(true)}
             >
               <Menu className="h-5 w-5" />
             </button>
             <div>
-              <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 sm:text-xl">
                 {getGreeting()}, {user?.name ? user.name.split(" ")[0] : "Scholar"}!
               </h2>
-              <p className="text-xs text-slate-400 hidden sm:block">
+              <p className="text-xs text-slate-400 dark:text-slate-500 hidden sm:block">
                 Academic Year 2026–2027 • {new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
               </p>
             </div>
           </div>
 
           {/* Right Header: Fast Switcher & Profile Badge */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Top Quick Role Switcher Buttons */}
-            <div className="hidden lg:flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60">
-              <span className="text-[11px] font-semibold text-slate-700 px-2">Role:</span>
+            <div className="hidden lg:flex items-center gap-1.5 bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700">
+              <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 px-2">Role:</span>
               <button
                 type="button"
                 onClick={() => handleRoleQuickSwitch("admin")}
                 className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
                   role === "admin"
                     ? "bg-purple-600 text-white shadow-xs font-semibold"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700"
                 }`}
               >
                 Admin
@@ -261,7 +267,7 @@ export const AppShell: React.FC = () => {
                 className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
                   role === "teacher"
                     ? "bg-blue-600 text-white shadow-xs font-semibold"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700"
                 }`}
               >
                 Teacher
@@ -272,7 +278,7 @@ export const AppShell: React.FC = () => {
                 className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
                   role === "student"
                     ? "bg-emerald-600 text-white shadow-xs font-semibold"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700"
                 }`}
               >
                 Student
@@ -285,9 +291,19 @@ export const AppShell: React.FC = () => {
 
             <Button
               variant="ghost"
+              size="icon"
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              aria-label="Toggle dark theme"
+              className="rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800"
+            >
+              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+
+            <Button
+              variant="ghost"
               size="sm"
               onClick={logout}
-              className="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
+              className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl"
             >
               <LogOut className="h-4 w-4 sm:mr-1.5" />
               <span className="hidden sm:inline text-xs font-medium">Exit</span>
@@ -296,7 +312,7 @@ export const AppShell: React.FC = () => {
         </header>
 
         {/* Scrollable Page Body */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 print:overflow-visible print:p-0">
           <Outlet />
         </main>
       </div>

@@ -5,12 +5,21 @@ import { ApiResponse } from "@/types/auth";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarCheck, CheckCircle2, Clock, XCircle, ShieldAlert } from "lucide-react";
+import {
+  CalendarCheck,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  ShieldAlert,
+  AlertCircle,
+} from "lucide-react";
+import { formatDateOnly } from "@/lib/date";
 
 interface AttendanceRecord {
   id: number;
   date: string;
   status: "present" | "late" | "absent" | "excused";
+  subject_name?: string | null;
   remarks?: string;
   recorded_by_name?: string;
 }
@@ -18,7 +27,11 @@ interface AttendanceRecord {
 export const StudentAttendancePage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("");
 
-  const { data: attendanceList = [], isLoading } = useQuery<AttendanceRecord[]>({
+  const {
+    data: attendanceList = [],
+    isLoading,
+    isError,
+  } = useQuery<AttendanceRecord[]>({
     queryKey: ["student-full-attendance"],
     queryFn: async () => {
       const res = await apiClient.get<ApiResponse<AttendanceRecord[]>>("/attendances");
@@ -98,6 +111,13 @@ export const StudentAttendancePage: React.FC = () => {
         </select>
       </div>
 
+      {isError && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Unable to load your attendance history. Please check your connection and refresh the page.</p>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="border-slate-200 shadow-xs dark:border-slate-800">
@@ -159,8 +179,7 @@ export const StudentAttendancePage: React.FC = () => {
                 </tr>
               ) : (
                 filteredList.map((record) => {
-                  const dateObj = new Date(record.date);
-                  const formattedDate = dateObj.toLocaleDateString(undefined, {
+                  const formattedDate = formatDateOnly(record.date, {
                     weekday: "short",
                     year: "numeric",
                     month: "short",

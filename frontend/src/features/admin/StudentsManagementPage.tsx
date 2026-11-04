@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StudentFormSheet } from "./components/StudentFormSheet";
 import { toast } from "sonner";
-import { Search, Plus, Edit2, Trash2, GraduationCap } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, GraduationCap, AlertCircle } from "lucide-react";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 interface Student {
   id: number;
@@ -28,6 +29,7 @@ interface Student {
 export const StudentsManagementPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [selectedClassroomId, setSelectedClassroomId] = useState<string>("");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -42,11 +44,15 @@ export const StudentsManagementPage: React.FC = () => {
   });
 
   // Fetch Students with search and filter
-  const { data: students = [], isLoading } = useQuery<Student[]>({
-    queryKey: ["admin-students", searchTerm, selectedClassroomId],
+  const {
+    data: students = [],
+    isLoading,
+    isError,
+  } = useQuery<Student[]>({
+    queryKey: ["admin-students", debouncedSearch, selectedClassroomId],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchTerm) params.append("search", searchTerm);
+      if (debouncedSearch) params.append("search", debouncedSearch);
       if (selectedClassroomId) params.append("classroom_id", selectedClassroomId);
       const res = await apiClient.get<ApiResponse<Student[]>>(`/admin/students?${params.toString()}`);
       return res.data.data;
@@ -126,6 +132,13 @@ export const StudentsManagementPage: React.FC = () => {
           ))}
         </select>
       </div>
+
+      {isError && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Unable to load student directory. Please check database connectivity and refresh.</p>
+        </div>
+      )}
 
       {/* Students Data Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">

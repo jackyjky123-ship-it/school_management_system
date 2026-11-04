@@ -25,7 +25,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (! $user || ! Hash::check($validated['password'], $user->password)) {
             return $this->errorResponse(
                 'Invalid credentials',
                 422,
@@ -33,7 +33,7 @@ class AuthController extends Controller
             );
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return $this->errorResponse('Your account is currently disabled.', 403);
         }
 
@@ -62,18 +62,27 @@ class AuthController extends Controller
      */
     public function demoLogin(string $role): JsonResponse
     {
-        $roleEnum = RoleEnums::tryFrom(strtolower($role));
-
-        if (!$roleEnum) {
-            return $this->errorResponse("Invalid role. Allowed roles: admin, teacher, student", 400);
+        if (! config('demo.enabled')) {
+            return $this->errorResponse('Demo login is disabled in this environment.', 403);
         }
 
-        $user = User::role($roleEnum->value)->where('is_active', true)->first();
+        $roleEnum = RoleEnums::tryFrom(strtolower($role));
 
-        if (!$user) {
+        if (! $roleEnum) {
+            return $this->errorResponse('Invalid role. Allowed roles: admin, teacher, student', 400);
+        }
+
+        $user = User::role($roleEnum->value)
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->first();
+
+        if (! $user) {
             return $this->errorResponse("No active demo user found for role: {$roleEnum->value}", 404);
         }
 
+        // Keep the demo session single-use per account, matching the password login flow.
+        $user->tokens()->delete();
         $token = $user->createToken('demo_token')->plainTextToken;
 
         return $this->successResponse([
@@ -88,7 +97,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()?->delete();
 
         return $this->successResponse(null, 'Logged out successfully');
     }

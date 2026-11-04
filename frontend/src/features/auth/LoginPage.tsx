@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DemoSwitcher } from "./components/DemoSwitcher";
-import { GraduationCap, Lock, Mail, Loader2 } from "lucide-react";
+import { GraduationCap, Lock, Mail, Loader2, Eye, EyeOff } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -19,9 +19,10 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   const [serverError, setServerError] = React.useState<string | null>(null);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const {
     register,
@@ -100,12 +101,19 @@ export const LoginPage: React.FC = () => {
                     id="email"
                     type="email"
                     placeholder="name@school.test"
+                    autoComplete="email"
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "email-error" : undefined}
                     className="pl-9"
-                    {...register("email")}
+                    {...register("email", {
+                      onChange: () => setServerError(null),
+                    })}
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-xs text-red-500">{errors.email.message}</p>
+                  <p id="email-error" className="text-xs text-red-500">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -115,21 +123,37 @@ export const LoginPage: React.FC = () => {
                   <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className="pl-9"
-                    {...register("password")}
+                    autoComplete="current-password"
+                    aria-invalid={!!errors.password}
+                    aria-describedby={errors.password ? "password-error" : undefined}
+                    className="px-9"
+                    {...register("password", {
+                      onChange: () => setServerError(null),
+                    })}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    className="absolute right-2 top-1.5 rounded-md p-1 text-slate-400 hover:text-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:hover:text-slate-200"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-red-500">{errors.password.message}</p>
+                  <p id="password-error" className="text-xs text-red-500">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
                 className="w-full bg-indigo-600 hover:bg-indigo-700"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoading}
               >
                 {isSubmitting ? (
                   <>

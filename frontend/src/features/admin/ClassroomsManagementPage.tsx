@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClassroomDialog } from "./components/ClassroomDialog";
 import { toast } from "sonner";
-import { School, Plus, Edit2, Trash2, BookOpen, GraduationCap } from "lucide-react";
+import { School, Plus, Edit2, Trash2, BookOpen, GraduationCap, AlertCircle } from "lucide-react";
 
 interface Classroom {
   id: number;
@@ -35,7 +35,11 @@ export const ClassroomsManagementPage: React.FC = () => {
   });
 
   // Fetch Classrooms
-  const { data: classrooms = [], isLoading } = useQuery<Classroom[]>({
+  const {
+    data: classrooms = [],
+    isLoading,
+    isError,
+  } = useQuery<Classroom[]>({
     queryKey: ["admin-classrooms"],
     queryFn: async () => {
       const res = await apiClient.get<ApiResponse<Classroom[]>>("/admin/classrooms");
@@ -89,6 +93,13 @@ export const ClassroomsManagementPage: React.FC = () => {
           Create Classroom
         </Button>
       </div>
+
+      {isError && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Unable to load classrooms. Please check database connectivity and refresh.</p>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

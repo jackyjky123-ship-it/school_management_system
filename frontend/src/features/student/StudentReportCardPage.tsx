@@ -5,7 +5,7 @@ import { ApiResponse } from "@/types/auth";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Filter } from "lucide-react";
+import { BookOpen, Filter, AlertCircle } from "lucide-react";
 
 interface GradeItem {
   id: number;
@@ -24,7 +24,11 @@ interface GradeItem {
 export const StudentReportCardPage: React.FC = () => {
   const [termFilter, setTermFilter] = useState<string>("");
 
-  const { data: grades = [], isLoading } = useQuery<GradeItem[]>({
+  const {
+    data: grades = [],
+    isLoading,
+    isError,
+  } = useQuery<GradeItem[]>({
     queryKey: ["student-full-grades"],
     queryFn: async () => {
       const res = await apiClient.get<ApiResponse<GradeItem[]>>("/grades");
@@ -71,6 +75,13 @@ export const StudentReportCardPage: React.FC = () => {
           </select>
         </div>
       </div>
+
+      {isError && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Unable to load your academic report card. Please check your connection and refresh the page.</p>
+        </div>
+      )}
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -166,6 +177,8 @@ export const StudentReportCardPage: React.FC = () => {
                             ? "default"
                             : g.letter_grade === "B"
                             ? "secondary"
+                            : g.letter_grade === "F"
+                            ? "destructive"
                             : "outline"
                         }
                         className="font-bold font-mono"

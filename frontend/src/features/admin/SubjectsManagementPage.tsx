@@ -9,7 +9,8 @@ import { Dialog } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { BookOpen, Plus, Trash2, Edit2, Search, Loader2 } from "lucide-react";
+import { BookOpen, Plus, Trash2, Edit2, Search, Loader2, AlertCircle } from "lucide-react";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 interface Subject {
   id: number;
@@ -24,6 +25,7 @@ interface Subject {
 export const SubjectsManagementPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
 
@@ -51,11 +53,15 @@ export const SubjectsManagementPage: React.FC = () => {
   });
 
   // Fetch Subjects
-  const { data: subjects = [], isLoading } = useQuery<Subject[]>({
-    queryKey: ["admin-subjects", searchTerm],
+  const {
+    data: subjects = [],
+    isLoading,
+    isError,
+  } = useQuery<Subject[]>({
+    queryKey: ["admin-subjects", debouncedSearch],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchTerm) params.append("search", searchTerm);
+      if (debouncedSearch) params.append("search", debouncedSearch);
       const res = await apiClient.get<ApiResponse<Subject[]>>(`/admin/subjects?${params.toString()}`);
       return res.data.data;
     },
@@ -149,6 +155,13 @@ export const SubjectsManagementPage: React.FC = () => {
           className="pl-9 bg-white dark:bg-slate-900"
         />
       </div>
+
+      {isError && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Unable to load curriculum subjects. Please check database connectivity and refresh.</p>
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
         <div className="overflow-x-auto">
