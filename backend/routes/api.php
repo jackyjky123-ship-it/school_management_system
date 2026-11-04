@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AuthController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Health Check
     Route::get('/health', function () {
         try {
             DB::connection()->getPdo();
@@ -23,5 +25,17 @@ Route::prefix('v1')->group(function () {
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal Server Error',
             ], 500);
         }
+    });
+
+    // Public Auth Endpoints
+    Route::prefix('auth')->group(function () {
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/demo/{role}', [AuthController::class, 'demoLogin']);
+
+        // Protected Auth Endpoints
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::get('/me', [AuthController::class, 'me']);
+            Route::post('/logout', [AuthController::class, 'logout']);
+        });
     });
 });
