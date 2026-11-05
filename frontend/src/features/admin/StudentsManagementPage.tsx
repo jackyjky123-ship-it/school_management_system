@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StudentFormSheet } from "./components/StudentFormSheet";
 import { toast } from "sonner";
-import { Search, Plus, Edit2, Trash2, GraduationCap, AlertCircle } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, GraduationCap, AlertCircle, ChevronDown } from "lucide-react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 interface Student {
@@ -90,51 +90,61 @@ export const StudentsManagementPage: React.FC = () => {
     setSheetOpen(true);
   };
 
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
             Student Directory
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Enroll, organize, and monitor academic records of all school students
           </p>
         </div>
-        <Button onClick={handleCreate} className="bg-indigo-600 hover:bg-indigo-700">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={handleCreate} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium h-9 px-4 text-xs">
+          <Plus className="mr-1.5 h-4 w-4" />
           Enroll New Student
         </Button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:flex-row">
+      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
           <Input
             placeholder="Search by student name or code..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9 text-xs"
           />
         </div>
 
-        <select
-          value={selectedClassroomId}
-          onChange={(e) => setSelectedClassroomId(e.target.value)}
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900"
-        >
-          <option value="">All Classrooms</option>
-          {classrooms.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative sm:w-56">
+          <select
+            value={selectedClassroomId}
+            onChange={(e) => setSelectedClassroomId(e.target.value)}
+            className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+          >
+            <option value="">All Classrooms</option>
+            {classrooms.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+        </div>
       </div>
 
       {isError && (
-        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+        <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <p>Unable to load student directory. Please check database connectivity and refresh.</p>
         </div>
@@ -143,8 +153,8 @@ export const StudentsManagementPage: React.FC = () => {
       {/* Students Data Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-800/50">
+          <table className="w-full text-left text-xs">
+            <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
               <tr>
                 <th className="px-4 py-3">Code</th>
                 <th className="px-4 py-3">Student Name</th>
@@ -154,7 +164,7 @@ export const StudentsManagementPage: React.FC = () => {
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center">
@@ -169,36 +179,45 @@ export const StudentsManagementPage: React.FC = () => {
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-slate-400">
                     <GraduationCap className="mx-auto mb-2 h-10 w-10 opacity-30" />
-                    <p className="font-medium text-slate-600 dark:text-slate-300">No students found</p>
-                    <p className="text-xs">Try adjusting your search criteria or enroll a new student.</p>
+                    <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No students found</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Try adjusting your search criteria or enroll a new student.</p>
                   </td>
                 </tr>
               ) : (
                 students.map((student) => (
                   <tr
                     key={student.id}
-                    className="transition-colors hover:bg-slate-50/75 dark:hover:bg-slate-800/50"
+                    className="transition-colors hover:bg-slate-50/75 dark:hover:bg-slate-800/40"
                   >
-                    <td className="px-4 py-3 font-mono font-medium text-slate-600 dark:text-slate-300">
-                      {student.student_code}
+                    <td className="px-4 py-3">
+                      <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+                        {student.student_code}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-medium text-slate-900 dark:text-slate-100">
-                        {student.name}
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 font-semibold text-[11px] text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+                          {getInitials(student.name)}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-slate-100">
+                            {student.name}
+                          </div>
+                          <div className="text-[11px] text-slate-400">{student.email}</div>
+                        </div>
                       </div>
-                      <div className="text-xs text-slate-400">{student.email}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="secondary" className="font-normal">
+                      <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-normal text-[11px]">
                         {student.classroom?.name || "Unassigned"}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 capitalize text-slate-600 dark:text-slate-300">
+                    <td className="px-4 py-3 capitalize text-slate-600 dark:text-slate-400">
                       {student.gender}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
-                      <div>{student.guardian_name || "—"}</div>
-                      <div className="text-slate-400">{student.guardian_phone}</div>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                      <div className="font-medium text-slate-800 dark:text-slate-200">{student.guardian_name || "—"}</div>
+                      <div className="text-[10px] text-slate-400 tabular-nums">{student.guardian_phone}</div>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -207,14 +226,15 @@ export const StudentsManagementPage: React.FC = () => {
                           size="icon-xs"
                           onClick={() => handleEdit(student)}
                           title="Edit Student"
+                          className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                         >
-                          <Edit2 className="h-3.5 w-3.5 text-slate-600" />
+                          <Edit2 className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon-xs"
                           onClick={() => handleDelete(student)}
-                          className="hover:text-red-600"
+                          className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                           title="Delete Student"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -229,7 +249,6 @@ export const StudentsManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Slide-over sheet for Add/Edit */}
       <StudentFormSheet
         isOpen={sheetOpen}
         onClose={() => setSheetOpen(false)}

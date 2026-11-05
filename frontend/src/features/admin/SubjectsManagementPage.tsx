@@ -9,7 +9,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { BookOpen, Plus, Trash2, Edit2, Search, Loader2, AlertCircle } from "lucide-react";
+import { BookOpen, Plus, Trash2, Edit2, Search, Loader2, AlertCircle, RotateCcw, ChevronDown } from "lucide-react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 interface Subject {
@@ -34,6 +34,8 @@ export const SubjectsManagementPage: React.FC = () => {
   const [code, setCode] = useState("");
   const [classroomId, setClassroomId] = useState<string>("");
   const [teacherId, setTeacherId] = useState<string>("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // Fetch Classrooms & Teachers for form dropdowns
   const { data: classrooms = [] } = useQuery<Array<{ id: number; name: string }>>({
@@ -57,6 +59,7 @@ export const SubjectsManagementPage: React.FC = () => {
     data: subjects = [],
     isLoading,
     isError,
+    refetch,
   } = useQuery<Subject[]>({
     queryKey: ["admin-subjects", debouncedSearch],
     queryFn: async () => {
@@ -72,7 +75,8 @@ export const SubjectsManagementPage: React.FC = () => {
     setName("");
     setCode(`SUB-${Math.floor(100 + Math.random() * 900)}`);
     setClassroomId(classrooms[0] ? String(classrooms[0].id) : "");
-    setTeacherId(teachers[0] ? String(teachers[0].id) : "");
+    setTeacherId("");
+    setFormError(null);
     setDialogOpen(true);
   };
 
@@ -82,14 +86,19 @@ export const SubjectsManagementPage: React.FC = () => {
     setCode(s.code);
     setClassroomId(String(s.classroom_id));
     setTeacherId(s.teacher_id ? String(s.teacher_id) : "");
+    setFormError(null);
     setDialogOpen(true);
   };
 
   const mutation = useMutation({
     mutationFn: async () => {
+      if (!name.trim()) throw new Error("Subject title is required");
+      if (!code.trim()) throw new Error("Subject code is required");
+      if (!classroomId) throw new Error("Please select an assigned classroom");
+
       const payload = {
-        name,
-        code,
+        name: name.trim(),
+        code: code.trim().toUpperCase(),
         classroom_id: Number(classroomId),
         teacher_id: teacherId ? Number(teacherId) : null,
       };
@@ -105,12 +114,21 @@ export const SubjectsManagementPage: React.FC = () => {
       setDialogOpen(false);
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to save subject");
+      const msg = err.response?.data?.message || err.message || "Failed to save subject";
+      setFormError(msg);
+      toast.error(msg);
     },
   });
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    mutation.mutate();
+  };
+
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
+      setDeletingId(id);
       return apiClient.delete(`/admin/subjects/${id}`);
     },
     onSuccess: () => {
@@ -120,6 +138,9 @@ export const SubjectsManagementPage: React.FC = () => {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to delete subject");
+    },
+    onSettled: () => {
+      setDeletingId(null);
     },
   });
 
@@ -131,42 +152,58 @@ export const SubjectsManagementPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
             Course Curriculum & Subjects
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Assign courses to classrooms and designate instructing faculty members
           </p>
         </div>
-        <Button onClick={openCreateDialog} className="bg-indigo-600 hover:bg-indigo-700">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={openCreateDialog} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium h-9 px-4 text-xs">
+          <Plus className="mr-1.5 h-4 w-4" />
           Add Subject
         </Button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-        <Input
-          placeholder="Search subjects by name or code..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 bg-white dark:bg-slate-900"
-        />
+      {/* Search Bar */}
+      <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search subjects by name or code..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-9 text-xs"
+          />
+        </div>
       </div>
 
       {isError && (
-        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>Unable to load curriculum subjects. Please check database connectivity and refresh.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>Unable to load curriculum subjects. Please check database connectivity and retry.</p>
+          </div>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => refetch()}
+            className="self-start sm:self-auto gap-1 border-rose-300 text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/40"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Retry
+          </Button>
         </div>
       )}
 
+      {/* Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-800/50">
+          <table className="w-full text-left text-xs">
+            <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
               <tr>
                 <th className="px-4 py-3">Code</th>
                 <th className="px-4 py-3">Subject Name</th>
@@ -175,54 +212,77 @@ export const SubjectsManagementPage: React.FC = () => {
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center">
                     <div className="space-y-3">
                       <Skeleton className="h-6 w-full" />
                       <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-3/4" />
                     </div>
                   </td>
                 </tr>
               ) : subjects.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-12 text-center text-slate-400">
-                    <BookOpen className="mx-auto mb-2 h-10 w-10 opacity-30" />
-                    <p className="font-medium text-slate-600 dark:text-slate-300">No subjects registered</p>
+                    <BookOpen className="mx-auto mb-2 h-10 w-10 opacity-30 text-slate-500" />
+                    <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No subjects registered</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Add a subject to start building your academic curriculum.</p>
                   </td>
                 </tr>
               ) : (
                 subjects.map((s) => (
                   <tr
                     key={s.id}
-                    className="transition-colors hover:bg-slate-50/75 dark:hover:bg-slate-800/50"
+                    className="transition-colors hover:bg-slate-50/75 dark:hover:bg-slate-800/40"
                   >
-                    <td className="px-4 py-3 font-mono font-medium text-slate-600 dark:text-slate-300">
-                      {s.code}
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
-                      {s.name}
+                    <td className="px-4 py-3">
+                      <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+                        {s.code}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="outline">{s.classroom_name || "Unassigned"}</Badge>
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">
+                          {s.name}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                    <td className="px-4 py-3">
+                      <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-normal text-[11px]">
+                        {s.classroom_name || "Unassigned"}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">
                       {s.teacher_name || <span className="text-slate-400 italic">None</span>}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon-xs" onClick={() => openEditDialog(s)} title="Edit">
-                          <Edit2 className="h-3.5 w-3.5 text-slate-600" />
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => openEditDialog(s)}
+                          disabled={deletingId === s.id}
+                          title="Edit Subject"
+                          className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon-xs"
                           onClick={() => handleDelete(s)}
-                          className="hover:text-red-600"
-                          title="Delete"
+                          disabled={deletingId === s.id}
+                          className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                          title="Delete Subject"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          {deletingId === s.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-500" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
                         </Button>
                       </div>
                     </td>
@@ -240,63 +300,109 @@ export const SubjectsManagementPage: React.FC = () => {
         title={editingSubject ? "Edit Subject" : "Create New Subject"}
         description="Configure course title, unique code, classroom link, and educator assignment."
       >
-        <div className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4">
+          {formError && (
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
+              {formError}
+            </div>
+          )}
+
           <div className="space-y-1.5">
-            <Label htmlFor="s-name">Subject Title *</Label>
-            <Input id="s-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Physics 10A" />
+            <Label htmlFor="s-name" className="text-xs font-medium">Subject Title *</Label>
+            <Input
+              id="s-name"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                setFormError(null);
+              }}
+              placeholder="e.g. Physics 10A"
+              className="h-9 text-xs"
+            />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="s-code">Subject Code *</Label>
-            <Input id="s-code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. PHY-10A" />
+            <Label htmlFor="s-code" className="text-xs font-medium">Subject Code *</Label>
+            <Input
+              id="s-code"
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value);
+                setFormError(null);
+              }}
+              placeholder="e.g. PHY-10A"
+              className="h-9 text-xs font-mono"
+            />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="s-class">Assigned Classroom *</Label>
-            <select
-              id="s-class"
-              value={classroomId}
-              onChange={(e) => setClassroomId(e.target.value)}
-              className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm dark:border-slate-800 dark:bg-slate-900"
+            <Label htmlFor="s-class" className="text-xs font-medium">Assigned Classroom *</Label>
+            <div className="relative">
+              <select
+                id="s-class"
+                value={classroomId}
+                onChange={(e) => {
+                  setClassroomId(e.target.value);
+                  setFormError(null);
+                }}
+                className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+              >
+                <option value="">Select a classroom...</option>
+                {classrooms.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+            </div>
+            {classrooms.length === 0 && (
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                No classrooms available. Please create a classroom first.
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="s-teacher" className="text-xs font-medium">Instructing Faculty Member</Label>
+            <div className="relative">
+              <select
+                id="s-teacher"
+                value={teacherId}
+                onChange={(e) => setTeacherId(e.target.value)}
+                className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+              >
+                <option value="">Unassigned</option>
+                {teachers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setDialogOpen(false)}
+              disabled={mutation.isPending}
+              className="text-xs"
             >
-              <option value="">Select a classroom...</option>
-              {classrooms.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="s-teacher">Instructing Faculty Member</Label>
-            <select
-              id="s-teacher"
-              value={teacherId}
-              onChange={(e) => setTeacherId(e.target.value)}
-              className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm dark:border-slate-800 dark:bg-slate-900"
-            >
-              <option value="">Unassigned</option>
-              {teachers.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={mutation.isPending}>
               Cancel
             </Button>
             <Button
-              onClick={() => mutation.mutate()}
-              disabled={mutation.isPending || !name || !code || !classroomId}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              type="submit"
+              size="sm"
+              disabled={mutation.isPending || !name.trim() || !code.trim() || !classroomId}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
             >
               {mutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                   Saving...
                 </>
               ) : (
@@ -304,7 +410,7 @@ export const SubjectsManagementPage: React.FC = () => {
               )}
             </Button>
           </div>
-        </div>
+        </form>
       </Dialog>
     </div>
   );

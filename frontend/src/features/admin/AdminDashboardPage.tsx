@@ -58,9 +58,11 @@ export const AdminDashboardPage: React.FC = () => {
 
   if (isError || !data) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
-        <h3 className="font-semibold">Failed to load institutional metrics</h3>
-        <p className="mt-1 text-sm">Please verify backend service and Neon database connectivity.</p>
+      <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+        <h3 className="font-semibold text-base">Failed to load institutional metrics</h3>
+        <p className="mt-1 text-sm text-rose-700 dark:text-rose-300">
+          Please verify backend service and Neon database connectivity.
+        </p>
       </div>
     );
   }
@@ -70,103 +72,109 @@ export const AdminDashboardPage: React.FC = () => {
       {/* Page Title */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
             Administrative Command
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Real-time overview of school academic performance and enrollment statistics
+            Real-time institutional metrics, faculty allocation, and classroom enrollment distribution
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1.5 border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
+          <Badge variant="outline" className="gap-1.5 border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 text-xs px-2.5 py-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            Live PostgreSQL Neon Cluster
+            Live Neon Cluster
           </Badge>
         </div>
       </div>
 
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-slate-200 shadow-xs dark:border-slate-800">
+        <Card className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-slate-500">
-              Total Students
-            </CardTitle>
-            <div className="rounded-lg bg-indigo-50 p-2 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
-              <GraduationCap className="h-5 w-5" />
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Total Enrolled Students
+            </span>
+            <div className="rounded-lg bg-indigo-50 p-2 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+              <GraduationCap className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">
               {data.total_students}
             </div>
-            <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
-              <TrendingUp className="h-3 w-3 text-emerald-500" />
-              <span>Active enrollments</span>
+            <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+              <TrendingUp className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+              <span>Active student profiles</span>
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-xs dark:border-slate-800">
+        <Card className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-slate-500">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               Active Faculty
-            </CardTitle>
-            <div className="rounded-lg bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
-              <Users className="h-5 w-5" />
+            </span>
+            <div className="rounded-lg bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+              <Users className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">
               {data.total_teachers}
             </div>
-            <p className="mt-1 text-xs text-slate-500">Assigned across departments</p>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              Assigned across departments
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-xs dark:border-slate-800">
+        <Card className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-slate-500">
-              Classrooms
-            </CardTitle>
-            <div className="rounded-lg bg-purple-50 p-2 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400">
-              <School className="h-5 w-5" />
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Active Classrooms
+            </span>
+            <div className="rounded-lg bg-purple-50 p-2 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+              <School className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">
               {data.total_classrooms}
             </div>
-            <p className="mt-1 text-xs text-slate-500">{data.total_subjects} active subjects</p>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+              {data.total_subjects} active courses
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-xs dark:border-slate-800">
+        <Card className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-slate-500">
-              Today's Attendance
-            </CardTitle>
-            <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-              <CalendarCheck className="h-5 w-5" />
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Daily Attendance Rate
+            </span>
+            <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <CalendarCheck className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">
               {data.today_attendance_rate}%
             </div>
-            <p className="mt-1 text-xs text-slate-500">School-wide attendance rate</p>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              School-wide present rate today
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Classroom Distribution Breakdown */}
+      {/* Classroom Distribution Breakdown & Quick Actions */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="border-slate-200 shadow-xs dark:border-slate-800 lg:col-span-2">
-          <CardHeader>
+        <Card className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-xs lg:col-span-2">
+          <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold">
               Classroom Roster Distribution
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs text-slate-500">
               Student population density across active classrooms
             </CardDescription>
           </CardHeader>
@@ -179,10 +187,10 @@ export const AdminDashboardPage: React.FC = () => {
                 return (
                   <div key={classroom.id} className="space-y-1.5">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-slate-800 dark:text-slate-200">
+                      <span className="font-medium text-slate-900 dark:text-slate-100">
                         {classroom.name}
                       </span>
-                      <span className="text-slate-500">
+                      <span className="text-slate-500 dark:text-slate-400 tabular-nums text-xs">
                         {classroom.students_count} students ({percentage}%)
                       </span>
                     </div>
@@ -200,49 +208,51 @@ export const AdminDashboardPage: React.FC = () => {
         </Card>
 
         {/* Quick Operations Guide */}
-        <Card className="border-slate-200 shadow-xs dark:border-slate-800">
-          <CardHeader>
+        <Card className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-xs">
+          <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
-            <CardDescription>Direct navigation to administrative workflows</CardDescription>
+            <CardDescription className="text-xs text-slate-500">
+              Direct access to school management directories
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2.5">
             <Link to="/admin/students" className="block">
-              <Button variant="outline" className="w-full justify-between">
-                <span className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4 text-indigo-600" />
+              <Button variant="outline" className="w-full justify-between h-10 border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200">
+                <span className="flex items-center gap-2 text-xs font-semibold">
+                  <GraduationCap className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                   Manage Students
                 </span>
-                <ArrowRight className="h-4 w-4 text-slate-400" />
+                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
               </Button>
             </Link>
 
             <Link to="/admin/teachers" className="block">
-              <Button variant="outline" className="w-full justify-between">
-                <span className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-blue-600" />
+              <Button variant="outline" className="w-full justify-between h-10 border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200">
+                <span className="flex items-center gap-2 text-xs font-semibold">
+                  <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   Manage Faculty
                 </span>
-                <ArrowRight className="h-4 w-4 text-slate-400" />
+                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
               </Button>
             </Link>
 
             <Link to="/admin/classrooms" className="block">
-              <Button variant="outline" className="w-full justify-between">
-                <span className="flex items-center gap-2">
-                  <School className="h-4 w-4 text-purple-600" />
+              <Button variant="outline" className="w-full justify-between h-10 border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200">
+                <span className="flex items-center gap-2 text-xs font-semibold">
+                  <School className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                   Manage Classrooms
                 </span>
-                <ArrowRight className="h-4 w-4 text-slate-400" />
+                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
               </Button>
             </Link>
 
             <Link to="/admin/subjects" className="block">
-              <Button variant="outline" className="w-full justify-between">
-                <span className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-amber-600" />
+              <Button variant="outline" className="w-full justify-between h-10 border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200">
+                <span className="flex items-center gap-2 text-xs font-semibold">
+                  <BookOpen className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   Course Catalog
                 </span>
-                <ArrowRight className="h-4 w-4 text-slate-400" />
+                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
               </Button>
             </Link>
           </CardContent>

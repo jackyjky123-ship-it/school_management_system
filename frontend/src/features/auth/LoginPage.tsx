@@ -54,47 +54,49 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950 sm:p-8">
-      <div className="w-full max-w-lg space-y-6">
+      <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
-            <GraduationCap className="h-8 w-8" />
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+            <GraduationCap className="h-6 w-6" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
             Academia Portal
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            School Management System • Laravel 13 + React 19 Showcase
+            Institutional Academic & School Management Platform
           </p>
         </div>
 
-        <Card className="border-slate-200 shadow-sm dark:border-slate-800">
+        <Card className="border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-lg">Sign in to your account</CardTitle>
-            <CardDescription>
-              Use the 1-click reviewer buttons below or enter credentials manually
+            <CardTitle className="text-base font-semibold">Sign in to your account</CardTitle>
+            <CardDescription className="text-xs text-slate-500">
+              Select an instant demo persona or enter your credentials below
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-4">
             {/* 1-Click Demo Reviewer Buttons */}
             <DemoSwitcher />
 
             <div className="relative flex items-center justify-center">
               <div className="w-full border-t border-slate-200 dark:border-slate-800" />
-              <span className="absolute bg-white px-3 text-xs uppercase text-slate-700 dark:bg-slate-900 dark:text-slate-400">
-                Or sign in manually
+              <span className="absolute bg-white px-2.5 text-[11px] font-medium text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                Or continue with email
               </span>
             </div>
 
             {serverError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
+              <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
                 {serverError}
               </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
               <div className="space-y-1.5">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Email Address
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                   <Input
@@ -104,21 +106,23 @@ export const LoginPage: React.FC = () => {
                     autoComplete="email"
                     aria-invalid={!!errors.email}
                     aria-describedby={errors.email ? "email-error" : undefined}
-                    className="pl-9"
+                    className="pl-9 h-9 text-sm"
                     {...register("email", {
                       onChange: () => setServerError(null),
                     })}
                   />
                 </div>
                 {errors.email && (
-                  <p id="email-error" className="text-xs text-red-500">
+                  <p id="email-error" className="text-xs text-rose-600">
                     {errors.email.message}
                   </p>
                 )}
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Password
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                   <Input
@@ -128,7 +132,7 @@ export const LoginPage: React.FC = () => {
                     autoComplete="current-password"
                     aria-invalid={!!errors.password}
                     aria-describedby={errors.password ? "password-error" : undefined}
-                    className="px-9"
+                    className="px-9 h-9 text-sm"
                     {...register("password", {
                       onChange: () => setServerError(null),
                     })}
@@ -138,13 +142,13 @@ export const LoginPage: React.FC = () => {
                     onClick={() => setShowPassword((visible) => !visible)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     aria-pressed={showPassword}
-                    className="absolute right-2 top-1.5 rounded-md p-1 text-slate-400 hover:text-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:hover:text-slate-200"
+                    className="absolute right-2 top-2 rounded-md p-1 text-slate-400 hover:text-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:hover:text-slate-200"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p id="password-error" className="text-xs text-red-500">
+                  <p id="password-error" className="text-xs text-rose-600">
                     {errors.password.message}
                   </p>
                 )}
@@ -152,7 +156,7 @@ export const LoginPage: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium h-9 text-sm transition-colors"
                 disabled={isSubmitting || isLoading}
               >
                 {isSubmitting ? (
@@ -168,8 +172,11 @@ export const LoginPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-slate-400">
-          Demo Passwords default to <code className="rounded bg-slate-200 px-1 py-0.5 text-slate-700 dark:bg-slate-800 dark:text-slate-300">password</code>
+        <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+          Demo Passwords default to{" "}
+          <code className="rounded bg-slate-200 px-1 py-0.5 text-slate-800 dark:bg-slate-800 dark:text-slate-200 font-mono">
+            password
+          </code>
         </p>
       </div>
     </div>

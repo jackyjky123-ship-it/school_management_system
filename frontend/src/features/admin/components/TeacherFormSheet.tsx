@@ -79,10 +79,15 @@ export const TeacherFormSheet: React.FC<TeacherFormSheetProps> = ({
 
   const mutation = useMutation({
     mutationFn: async (data: TeacherFormData) => {
+      const payload = {
+        ...data,
+        phone: data.phone?.trim() || null,
+        hire_date: data.hire_date || null,
+      };
       if (teacherToEdit) {
-        return apiClient.put(`/admin/teachers/${teacherToEdit.id}`, data);
+        return apiClient.put(`/admin/teachers/${teacherToEdit.id}`, payload);
       }
-      return apiClient.post("/admin/teachers", data);
+      return apiClient.post("/admin/teachers", payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-teachers"] });
@@ -108,59 +113,60 @@ export const TeacherFormSheet: React.FC<TeacherFormSheetProps> = ({
       title={teacherToEdit ? "Edit Faculty Profile" : "Appoint New Teacher"}
       description="Enter educator credentials and academic department specialization."
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
         <div className="space-y-1.5">
-          <Label htmlFor="name">Full Name *</Label>
-          <Input id="name" placeholder="e.g. Dr. Robert Vance" {...register("name")} />
-          {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+          <Label htmlFor="name" className="text-xs font-medium">Full Name *</Label>
+          <Input id="name" placeholder="e.g. Dr. Robert Vance" {...register("name")} className="h-8.5 text-xs" />
+          {errors.name && <p className="text-xs text-rose-600">{errors.name.message}</p>}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="email">Work Email *</Label>
-          <Input id="email" type="email" placeholder="faculty@school.test" {...register("email")} />
-          {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+          <Label htmlFor="email" className="text-xs font-medium">Work Email *</Label>
+          <Input id="email" type="email" placeholder="faculty@school.test" {...register("email")} className="h-8.5 text-xs" />
+          {errors.email && <p className="text-xs text-rose-600">{errors.email.message}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="employee_code">Employee Code *</Label>
-            <Input id="employee_code" {...register("employee_code")} />
+            <Label htmlFor="employee_code" className="text-xs font-medium">Employee Code *</Label>
+            <Input id="employee_code" {...register("employee_code")} className="h-8.5 text-xs font-mono" />
             {errors.employee_code && (
-              <p className="text-xs text-red-500">{errors.employee_code.message}</p>
+              <p className="text-xs text-rose-600">{errors.employee_code.message}</p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="hire_date">Hire Date</Label>
-            <Input id="hire_date" type="date" {...register("hire_date")} />
+            <Label htmlFor="hire_date" className="text-xs font-medium">Hire Date</Label>
+            <Input id="hire_date" type="date" {...register("hire_date")} className="h-8.5 text-xs font-mono" />
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="specialization">Academic Specialization *</Label>
+          <Label htmlFor="specialization" className="text-xs font-medium">Academic Specialization *</Label>
           <Input
             id="specialization"
             placeholder="e.g. Mathematics, Organic Chemistry"
             {...register("specialization")}
+            className="h-8.5 text-xs"
           />
           {errors.specialization && (
-            <p className="text-xs text-red-500">{errors.specialization.message}</p>
+            <p className="text-xs text-rose-600">{errors.specialization.message}</p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="phone">Phone Contact</Label>
-          <Input id="phone" placeholder="+1-555-..." {...register("phone")} />
+          <Label htmlFor="phone" className="text-xs font-medium">Phone Contact</Label>
+          <Input id="phone" placeholder="+1-555-..." {...register("phone")} className="h-8.5 text-xs font-mono" />
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending}>
+          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={mutation.isPending} className="text-xs">
             Cancel
           </Button>
-          <Button type="submit" disabled={mutation.isPending} className="bg-indigo-600 hover:bg-indigo-700">
+          <Button type="submit" size="sm" disabled={mutation.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs">
             {mutation.isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 Saving...
               </>
             ) : (

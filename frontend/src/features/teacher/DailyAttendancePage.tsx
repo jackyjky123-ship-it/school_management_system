@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/axios";
 import { ApiResponse } from "@/types/auth";
@@ -13,7 +13,7 @@ import {
   AttendanceStatus,
 } from "./components/AttendanceRosterTable";
 import { toast } from "sonner";
-import { Check, ClipboardCheck, Loader2, Calendar, AlertCircle } from "lucide-react";
+import { Check, ClipboardCheck, Loader2, Calendar, AlertCircle, ChevronDown } from "lucide-react";
 import { toLocalDateInputValue } from "@/lib/date";
 
 export const DailyAttendancePage: React.FC = () => {
@@ -33,7 +33,10 @@ export const DailyAttendancePage: React.FC = () => {
     },
   });
 
-  const homeroomClassrooms = dashboardData?.assigned_classrooms || [];
+  const homeroomClassrooms = useMemo(
+    () => dashboardData?.assigned_classrooms || [],
+    [dashboardData?.assigned_classrooms]
+  );
 
   // Default to first classroom if not set
   useEffect(() => {
@@ -42,8 +45,7 @@ export const DailyAttendancePage: React.FC = () => {
     }
   }, [homeroomClassrooms, selectedClassroomId]);
 
-  // 2. Fetch students through the classroom-scoped roster endpoint.
-  // Teachers are not allowed to call the admin-only student directory.
+  // 2. Fetch students through classroom-scoped roster endpoint
   const {
     data: students = [],
     isLoading: loadingStudents,
@@ -59,8 +61,7 @@ export const DailyAttendancePage: React.FC = () => {
     },
   });
 
-  // 3. Fetch existing homeroom attendance for this date and class.
-  // Subject-level records must not overwrite the homeroom status in this view.
+  // 3. Fetch existing homeroom attendance
   const {
     data: existingAttendance = [],
     isLoading: loadingAttendance,
@@ -78,7 +79,6 @@ export const DailyAttendancePage: React.FC = () => {
 
   // Merge students with existing attendance records
   useEffect(() => {
-    // Clear stale rows when switching to an empty classroom.
     if (students.length === 0) {
       setRoster([]);
       return;
@@ -142,14 +142,16 @@ export const DailyAttendancePage: React.FC = () => {
         queryKey: ["classroom-attendance", selectedClassroomId, selectedDate],
       });
       queryClient.invalidateQueries({ queryKey: ["teacher-dashboard-stats"] });
-      toast.success("Attendance roll call submitted successfully!");
+      toast.success("Daily attendance roll call saved successfully");
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to submit attendance");
+      toast.error(
+        err.response?.data?.message || "Failed to record attendance roll call"
+      );
     },
   });
 
-  // Counts
+  // Calculate live statistics from roster
   const presentCount = roster.filter((r) => r.status === "present").length;
   const lateCount = roster.filter((r) => r.status === "late").length;
   const absentCount = roster.filter((r) => r.status === "absent").length;
@@ -157,40 +159,43 @@ export const DailyAttendancePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Daily Attendance Roll Call
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
+            Daily Homeroom Roll Call
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Take morning attendance for your homeroom students with single-click actions
+            Record, verify, and submit official classroom attendance for school records
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
-            type="button"
             variant="outline"
+            size="sm"
             onClick={handleMarkAllPresent}
             disabled={roster.length === 0}
+            className="text-xs h-9 border-slate-200 dark:border-slate-800"
           >
-            <Check className="mr-1.5 h-4 w-4 text-emerald-600" />
+            <Check className="mr-1.5 h-3.5 w-3.5 text-emerald-600" />
             Mark All Present
           </Button>
 
           <Button
+            size="sm"
             onClick={() => submitMutation.mutate()}
             disabled={submitMutation.isPending || roster.length === 0}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs h-9"
           >
             {submitMutation.isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 Saving...
               </>
             ) : (
               <>
-                <ClipboardCheck className="mr-2 h-4 w-4" />
+                <ClipboardCheck className="mr-1.5 h-3.5 w-3.5" />
                 Save Roll Call
               </>
             )}
@@ -199,71 +204,72 @@ export const DailyAttendancePage: React.FC = () => {
       </div>
 
       {/* Selectors & Statistics Bar */}
-      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-4">
           <div className="space-y-1">
-            <Label htmlFor="classroom" className="text-xs">
+            <Label htmlFor="classroom" className="text-xs font-medium text-slate-700 dark:text-slate-300">
               Classroom Roster
             </Label>
-            <select
-              id="classroom"
-              value={selectedClassroomId}
-              onChange={(e) => setSelectedClassroomId(e.target.value)}
-              className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm dark:border-slate-800 dark:bg-slate-900"
-            >
-              {homeroomClassrooms.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.grade_level})
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                id="classroom"
+                value={selectedClassroomId}
+                onChange={(e) => setSelectedClassroomId(e.target.value)}
+                className="appearance-none rounded-lg border border-slate-200 bg-white pr-8 pl-3 py-1.5 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+              >
+                {homeroomClassrooms.map((c: any) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.grade_level})
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
+            </div>
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="date" className="text-xs">
+            <Label htmlFor="date" className="text-xs font-medium text-slate-700 dark:text-slate-300">
               Roll Call Date
             </Label>
-            <div className="relative">
-              <Input
-                id="date"
-                type="date"
-                value={selectedDate}
-                max={todayStr}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="h-8.5 text-sm"
-              />
-            </div>
+            <Input
+              id="date"
+              type="date"
+              value={selectedDate}
+              max={todayStr}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="h-8 text-xs font-mono"
+            />
           </div>
         </div>
 
         {/* Counter Badges & Status */}
         <div className="flex flex-wrap items-center gap-2">
           {existingAttendance.length > 0 ? (
-            <Badge className="bg-emerald-600 text-white font-medium">
+            <Badge className="bg-emerald-600 text-white font-medium text-xs">
               Recorded
             </Badge>
           ) : (
-            <Badge variant="secondary" className="font-medium text-slate-600 dark:text-slate-300">
+            <Badge variant="outline" className="border-slate-300 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-medium text-xs">
               Not Recorded Yet
             </Badge>
           )}
-          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30">
+          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 tabular-nums text-xs">
             Present: {presentCount}
           </Badge>
-          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30">
+          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 tabular-nums text-xs">
             Late: {lateCount}
           </Badge>
-          <Badge variant="outline" className="border-red-300 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/30">
+          <Badge variant="outline" className="border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300 tabular-nums text-xs">
             Absent: {absentCount}
           </Badge>
-          <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30">
+          <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 tabular-nums text-xs">
             Excused: {excusedCount}
           </Badge>
         </div>
       </div>
 
       {studentsError || attendanceError ? (
-        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+        <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <p>Unable to load this classroom roster. Please refresh the page or contact an administrator.</p>
         </div>
@@ -274,9 +280,13 @@ export const DailyAttendancePage: React.FC = () => {
           <Skeleton className="h-10 w-full" />
         </div>
       ) : roster.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center text-slate-400">
-          <Calendar className="mx-auto mb-2 h-10 w-10 opacity-30" />
-          <p className="font-medium text-slate-600 dark:text-slate-300">No students enrolled in this classroom</p>
+        <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-12 text-center text-slate-400">
+          <Calendar className="mx-auto mb-2 h-10 w-10 opacity-30 text-slate-500" />
+          <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">
+            {homeroomClassrooms.length === 0
+              ? "You do not have any homeroom classrooms assigned. Daily roll calls are managed by designated homeroom educators."
+              : "No students enrolled in this classroom"}
+          </p>
         </div>
       ) : (
         <AttendanceRosterTable

@@ -38,7 +38,7 @@ export const SidebarNav: React.FC<{ onItemClick?: () => void }> = ({ onItemClick
   ];
 
   const studentNav: NavItem[] = [
-    { title: "Overview", href: "/student", icon: LayoutDashboard },
+    { title: "Academic Overview", href: "/student", icon: LayoutDashboard },
     { title: "Report Card", href: "/student/report-card", icon: Award },
     { title: "Attendance Log", href: "/student/attendance", icon: CalendarCheck },
   ];
@@ -46,10 +46,7 @@ export const SidebarNav: React.FC<{ onItemClick?: () => void }> = ({ onItemClick
   const items = role === "admin" ? adminNav : role === "teacher" ? teacherNav : studentNav;
 
   return (
-    <nav className="space-y-1.5 px-3 py-4">
-      <div className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-        Navigation
-      </div>
+    <nav className="space-y-1 px-3 py-3" aria-label="Sidebar navigation">
       {items.map((item) => {
         const Icon = item.icon;
         return (
@@ -60,19 +57,19 @@ export const SidebarNav: React.FC<{ onItemClick?: () => void }> = ({ onItemClick
             onClick={onItemClick}
             className={({ isActive }) =>
               cn(
-                "group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-150",
+                "group flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-colors",
                 isActive
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  ? "bg-indigo-600 text-white font-semibold"
+                  : "text-slate-300 hover:bg-slate-900 hover:text-white"
               )
             }
           >
-            <div className="flex items-center gap-3">
-              <Icon className="h-4 w-4 shrink-0 transition-transform group-hover:scale-110" />
+            <div className="flex items-center gap-2.5">
+              <Icon className="h-4 w-4 shrink-0 transition-transform group-hover:scale-105" />
               <span>{item.title}</span>
             </div>
             {item.badge && (
-              <span className="rounded-full bg-indigo-500/30 px-2 py-0.5 text-[10px] font-semibold text-indigo-200">
+              <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-bold text-indigo-300 tabular-nums">
                 {item.badge}
               </span>
             )}

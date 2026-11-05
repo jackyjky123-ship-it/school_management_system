@@ -22,13 +22,13 @@ export const DemoSwitcher: React.FC = () => {
   };
 
   return (
-    <div className="space-y-3 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 p-4 dark:border-indigo-900/50 dark:bg-indigo-950/20">
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">
-          Portfolio Reviewer 1-Click Access
+        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+          Instant Demo Access
         </span>
-        <Badge variant="outline" className="border-indigo-300 text-indigo-700 dark:border-indigo-800 dark:text-indigo-300">
-          Instant Demo
+        <Badge variant="outline" className="border-slate-300 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 text-[11px]">
+          1-Click Switch
         </Badge>
       </div>
 
@@ -38,13 +38,13 @@ export const DemoSwitcher: React.FC = () => {
           variant="outline"
           disabled={isLoading}
           onClick={() => handleDemoClick("admin")}
-          className="flex h-auto flex-col items-center justify-center gap-1 border-indigo-200 bg-white py-2 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-900 dark:hover:bg-indigo-950"
+          className="flex h-auto flex-col items-center justify-center gap-1 border-slate-200 bg-white py-2.5 hover:bg-purple-50 hover:border-purple-200 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-purple-950/40 transition-colors"
         >
-          <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-100">
-            <ShieldCheck className="h-4 w-4 text-purple-600" />
-            <span>Admin</span>
+          <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100 text-xs">
+            <ShieldCheck className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            <span>Administrator</span>
           </div>
-          <span className="text-[10px] text-slate-700 dark:text-slate-400">Full School Control</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400">School Command</span>
         </Button>
 
         <Button
@@ -52,13 +52,13 @@ export const DemoSwitcher: React.FC = () => {
           variant="outline"
           disabled={isLoading}
           onClick={() => handleDemoClick("teacher")}
-          className="flex h-auto flex-col items-center justify-center gap-1 border-indigo-200 bg-white py-2 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-900 dark:hover:bg-indigo-950"
+          className="flex h-auto flex-col items-center justify-center gap-1 border-slate-200 bg-white py-2.5 hover:bg-blue-50 hover:border-blue-200 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-blue-950/40 transition-colors"
         >
-          <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-100">
-            <School className="h-4 w-4 text-blue-600" />
+          <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100 text-xs">
+            <School className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             <span>Teacher</span>
           </div>
-          <span className="text-[10px] text-slate-700 dark:text-slate-400">Roll Call & Grading</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400">Roll Call & Grading</span>
         </Button>
 
         <Button
@@ -66,13 +66,13 @@ export const DemoSwitcher: React.FC = () => {
           variant="outline"
           disabled={isLoading}
           onClick={() => handleDemoClick("student")}
-          className="flex h-auto flex-col items-center justify-center gap-1 border-indigo-200 bg-white py-2 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-900 dark:hover:bg-indigo-950"
+          className="flex h-auto flex-col items-center justify-center gap-1 border-slate-200 bg-white py-2.5 hover:bg-emerald-50 hover:border-emerald-200 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-emerald-950/40 transition-colors"
         >
-          <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-100">
-            <GraduationCap className="h-4 w-4 text-emerald-600" />
+          <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100 text-xs">
+            <GraduationCap className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             <span>Student</span>
           </div>
-          <span className="text-[10px] text-slate-700 dark:text-slate-400">Report Card & GPA</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400">Report Card & GPA</span>
         </Button>
       </div>
     </div>

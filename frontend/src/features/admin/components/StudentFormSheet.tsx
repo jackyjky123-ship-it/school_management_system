@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/axios";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown } from "lucide-react";
 
 const studentSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -97,6 +97,10 @@ export const StudentFormSheet: React.FC<StudentFormSheetProps> = ({
       const payload = {
         ...data,
         classroom_id: Number(data.classroom_id),
+        date_of_birth: data.date_of_birth || null,
+        guardian_name: data.guardian_name?.trim() || null,
+        guardian_phone: data.guardian_phone?.trim() || null,
+        address: data.address?.trim() || null,
       };
       if (studentToEdit) {
         return apiClient.put(`/admin/students/${studentToEdit.id}`, payload);
@@ -127,91 +131,97 @@ export const StudentFormSheet: React.FC<StudentFormSheetProps> = ({
       title={studentToEdit ? "Edit Student Details" : "Enroll New Student"}
       description="Enter the student's personal information and classroom allocation."
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
         <div className="space-y-1.5">
-          <Label htmlFor="name">Full Name *</Label>
-          <Input id="name" placeholder="e.g. John Doe" {...register("name")} />
-          {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+          <Label htmlFor="name" className="text-xs font-medium">Full Name *</Label>
+          <Input id="name" placeholder="e.g. John Doe" {...register("name")} className="h-8.5 text-xs" />
+          {errors.name && <p className="text-xs text-rose-600">{errors.name.message}</p>}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email Address *</Label>
-          <Input id="email" type="email" placeholder="john.doe@school.test" {...register("email")} />
-          {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+          <Label htmlFor="email" className="text-xs font-medium">Email Address *</Label>
+          <Input id="email" type="email" placeholder="john.doe@school.test" {...register("email")} className="h-8.5 text-xs" />
+          {errors.email && <p className="text-xs text-rose-600">{errors.email.message}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="student_code">Student Code *</Label>
-            <Input id="student_code" {...register("student_code")} />
+            <Label htmlFor="student_code" className="text-xs font-medium">Student Code *</Label>
+            <Input id="student_code" {...register("student_code")} className="h-8.5 text-xs font-mono" />
             {errors.student_code && (
-              <p className="text-xs text-red-500">{errors.student_code.message}</p>
+              <p className="text-xs text-rose-600">{errors.student_code.message}</p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="gender">Gender *</Label>
-            <select
-              id="gender"
-              {...register("gender")}
-              className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm dark:border-slate-800 dark:bg-slate-900"
-            >
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
+            <Label htmlFor="gender" className="text-xs font-medium">Gender *</Label>
+            <div className="relative">
+              <select
+                id="gender"
+                {...register("gender")}
+                className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 pr-8 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
+            </div>
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="classroom_id">Classroom Allocation *</Label>
-          <select
-            id="classroom_id"
-            {...register("classroom_id")}
-            className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm dark:border-slate-800 dark:bg-slate-900"
-          >
-            <option value="">Select a classroom...</option>
-            {classrooms.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <Label htmlFor="classroom_id" className="text-xs font-medium">Classroom Allocation *</Label>
+          <div className="relative">
+            <select
+              id="classroom_id"
+              {...register("classroom_id")}
+              className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 pr-8 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <option value="">Select a classroom...</option>
+              {classrooms.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
+          </div>
           {errors.classroom_id && (
-            <p className="text-xs text-red-500">{errors.classroom_id.message}</p>
+            <p className="text-xs text-rose-600">{errors.classroom_id.message}</p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="date_of_birth">Date of Birth</Label>
-          <Input id="date_of_birth" type="date" {...register("date_of_birth")} />
+          <Label htmlFor="date_of_birth" className="text-xs font-medium">Date of Birth</Label>
+          <Input id="date_of_birth" type="date" {...register("date_of_birth")} className="h-8.5 text-xs font-mono" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="guardian_name">Guardian Name</Label>
-            <Input id="guardian_name" placeholder="Parent / Guardian" {...register("guardian_name")} />
+            <Label htmlFor="guardian_name" className="text-xs font-medium">Guardian Name</Label>
+            <Input id="guardian_name" placeholder="Parent / Guardian" {...register("guardian_name")} className="h-8.5 text-xs" />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="guardian_phone">Guardian Phone</Label>
-            <Input id="guardian_phone" placeholder="+1-555-..." {...register("guardian_phone")} />
+            <Label htmlFor="guardian_phone" className="text-xs font-medium">Guardian Phone</Label>
+            <Input id="guardian_phone" placeholder="+1-555-..." {...register("guardian_phone")} className="h-8.5 text-xs font-mono" />
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="address">Address</Label>
-          <Input id="address" placeholder="Residential address" {...register("address")} />
+          <Label htmlFor="address" className="text-xs font-medium">Address</Label>
+          <Input id="address" placeholder="Residential address" {...register("address")} className="h-8.5 text-xs" />
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending}>
+          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={mutation.isPending} className="text-xs">
             Cancel
           </Button>
-          <Button type="submit" disabled={mutation.isPending} className="bg-indigo-600 hover:bg-indigo-700">
+          <Button type="submit" size="sm" disabled={mutation.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs">
             {mutation.isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 Saving...
               </>
             ) : (
