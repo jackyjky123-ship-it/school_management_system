@@ -279,25 +279,27 @@ class DemoSchoolSeeder extends Seeder
             AttendanceStatusEnum::EXCUSED,
         ];
 
+        $attendanceBatch = [];
+        $now = now();
+
         foreach ($studentProfiles as $index => $student) {
             foreach ($schoolDays as $dayIndex => $dateStr) {
                 // Determine a realistic status distribution
                 $statusIndex = ($index + $dayIndex) % count($statuses);
                 $status = $statuses[$statusIndex];
 
-                Attendance::updateOrCreate(
-                    [
-                        'student_id' => $student->id,
-                        'date' => $dateStr,
-                        'subject_id' => null, // Homeroom Daily Attendance
-                    ],
-                    [
-                        'classroom_id' => $student->classroom_id,
-                        'status' => $status->value,
-                        'recorded_by' => $adminUser->id,
-                        'remarks' => $status === AttendanceStatusEnum::ABSENT ? 'Parent notified' : null,
-                    ]
-                );
+                $attendanceBatch[] = [
+                    'student_id' => $student->id,
+                    'classroom_id' => $student->classroom_id,
+                    'subject_id' => null,
+                    'schedule_id' => null,
+                    'date' => $dateStr,
+                    'status' => $status->value,
+                    'recorded_by' => $adminUser->id,
+                    'remarks' => $status === AttendanceStatusEnum::ABSENT ? 'Parent notified' : null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
             }
         }
 
@@ -310,26 +312,31 @@ class DemoSchoolSeeder extends Seeder
                     $statusIndex = ($index + $dayIndex + $subIndex) % count($statuses);
                     $status = $statuses[$statusIndex];
 
-                    Attendance::updateOrCreate(
-                        [
-                            'student_id' => $student->id,
-                            'date' => $dateStr,
-                            'subject_id' => $subject->id,
-                        ],
-                        [
-                            'classroom_id' => $student->classroom_id,
-                            'status' => $status->value,
-                            'recorded_by' => $subject->teacher?->user_id ?? $adminUser->id,
-                            'remarks' => $status === AttendanceStatusEnum::ABSENT ? 'Illness reported' : null,
-                        ]
-                    );
+                    $attendanceBatch[] = [
+                        'student_id' => $student->id,
+                        'classroom_id' => $student->classroom_id,
+                        'subject_id' => $subject->id,
+                        'schedule_id' => null,
+                        'date' => $dateStr,
+                        'status' => $status->value,
+                        'recorded_by' => $subject->teacher?->user_id ?? $adminUser->id,
+                        'remarks' => $status === AttendanceStatusEnum::ABSENT ? 'Illness reported' : null,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
             }
+        }
+
+        foreach (array_chunk($attendanceBatch, 200) as $chunk) {
+            Attendance::insert($chunk);
         }
 
         // 8. Seed Grades
         // Base exam performance per student
         $examTypes = ['Midterm', 'Quiz 1'];
+        $gradeBatch = [];
+
         foreach ($studentProfiles as $index => $student) {
             $classSubjects = $student->classroom_id === $classroomA->id ? $subjectsA : $subjectsB;
 
@@ -339,22 +346,24 @@ class DemoSchoolSeeder extends Seeder
                     $baseScore = 75 + (($index * 7 + $subIndex * 5 + $examIndex * 3) % 23);
                     $score = min(100.00, (float) $baseScore);
 
-                    Grade::updateOrCreate(
-                        [
-                            'student_id' => $student->id,
-                            'subject_id' => $subject->id,
-                            'term' => 'Semester 1',
-                            'exam_type' => $exam,
-                        ],
-                        [
-                            'score' => $score,
-                            'max_score' => 100.00,
-                            'remarks' => $score >= 90 ? 'Excellent performance' : ($score >= 80 ? 'Good work' : 'Satisfactory'),
-                            'graded_by' => $subject->teacher?->user_id ?? $adminUser->id,
-                        ]
-                    );
+                    $gradeBatch[] = [
+                        'student_id' => $student->id,
+                        'subject_id' => $subject->id,
+                        'term' => 'Semester 1',
+                        'exam_type' => $exam,
+                        'score' => $score,
+                        'max_score' => 100.00,
+                        'remarks' => $score >= 90 ? 'Excellent performance' : ($score >= 80 ? 'Good work' : 'Satisfactory'),
+                        'graded_by' => $subject->teacher?->user_id ?? $adminUser->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
             }
+        }
+
+        foreach (array_chunk($gradeBatch, 100) as $chunk) {
+            Grade::insert($chunk);
         }
     }
 }
