@@ -34,4 +34,9 @@ class Subject extends Model
     {
         return $this->hasMany(Attendance::class, 'subject_id');
     }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class, 'subject_id');
+    }
 }

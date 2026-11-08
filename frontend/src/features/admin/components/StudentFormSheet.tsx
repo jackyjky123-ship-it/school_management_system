@@ -6,10 +6,17 @@ import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/axios";
 import { toast } from "sonner";
-import { Loader2, ChevronDown } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const studentSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -44,6 +51,8 @@ export const StudentFormSheet: React.FC<StudentFormSheetProps> = ({
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
@@ -60,6 +69,8 @@ export const StudentFormSheet: React.FC<StudentFormSheetProps> = ({
     },
   });
 
+  const selectedGender = watch("gender");
+  const selectedClassroomId = watch("classroom_id");
   const defaultClassroomId = classrooms[0] ? String(classrooms[0].id) : "";
 
   useEffect(() => {
@@ -155,38 +166,39 @@ export const StudentFormSheet: React.FC<StudentFormSheetProps> = ({
 
           <div className="space-y-1.5">
             <Label htmlFor="gender" className="text-xs font-medium">Gender *</Label>
-            <div className="relative">
-              <select
-                id="gender"
-                {...register("gender")}
-                className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 pr-8 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-              >
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
-            </div>
+            <Select
+              value={selectedGender}
+              onValueChange={(val) => setValue("gender", val as "male" | "female" | "other")}
+            >
+              <SelectTrigger className="h-8.5 text-xs">
+                <SelectValue placeholder="Gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="classroom_id" className="text-xs font-medium">Classroom Allocation *</Label>
-          <div className="relative">
-            <select
-              id="classroom_id"
-              {...register("classroom_id")}
-              className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 pr-8 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <option value="">Select a classroom...</option>
+          <Select
+            value={selectedClassroomId}
+            onValueChange={(val) => setValue("classroom_id", val, { shouldValidate: true })}
+          >
+            <SelectTrigger className="h-8.5 text-xs">
+              <SelectValue placeholder="Select a classroom..." />
+            </SelectTrigger>
+            <SelectContent>
               {classrooms.map((c) => (
-                <option key={c.id} value={c.id}>
+                <SelectItem key={c.id} value={String(c.id)}>
                   {c.name}
-                </option>
+                </SelectItem>
               ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
-          </div>
+            </SelectContent>
+          </Select>
           {errors.classroom_id && (
             <p className="text-xs text-rose-600">{errors.classroom_id.message}</p>
           )}

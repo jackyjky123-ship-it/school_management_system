@@ -20,11 +20,17 @@ class DashboardApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $teacher;
+
     protected User $student;
+
     protected Classroom $classroom;
+
     protected Subject $subject;
+
     protected TeacherProfile $teacherProfile;
+
     protected StudentProfile $studentProfile;
 
     protected function setUp(): void
@@ -97,7 +103,7 @@ class DashboardApiTest extends TestCase
     {
         $token = $this->admin->createToken('admin-token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/v1/dashboard/admin');
 
         $response->assertStatus(200)
@@ -126,7 +132,7 @@ class DashboardApiTest extends TestCase
     {
         $token = $this->teacher->createToken('teacher-token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/v1/dashboard/teacher');
 
         $response->assertStatus(200)
@@ -150,7 +156,7 @@ class DashboardApiTest extends TestCase
     {
         $token = $this->student->createToken('student-token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/v1/dashboard/student');
 
         $response->assertStatus(200)

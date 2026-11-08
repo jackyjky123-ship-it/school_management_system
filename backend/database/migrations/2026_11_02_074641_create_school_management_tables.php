@@ -83,6 +83,7 @@ return new class extends Migration
             // Prevent duplicate attendance entries for the same student on the same day for the same subject/homeroom
             $table->unique(['student_id', 'date', 'subject_id']);
             $table->index(['classroom_id', 'date']);
+            $table->index(['date', 'subject_id']);
         });
 
         // Grades (Student score per Subject, Term, and Exam Type)
@@ -100,6 +101,7 @@ return new class extends Migration
 
             // Prevent duplicate grade entries for the same student, subject, term, and exam type
             $table->unique(['student_id', 'subject_id', 'term', 'exam_type']);
+            $table->index(['subject_id', 'term', 'exam_type']);
         });
     }
 

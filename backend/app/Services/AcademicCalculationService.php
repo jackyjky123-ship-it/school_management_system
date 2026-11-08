@@ -36,9 +36,6 @@ class AcademicCalculationService
 
     /**
      * Calculate student GPA, overall percentage, and academic standing.
-     *
-     * @param Collection $grades
-     * @return array
      */
     public function calculateStudentSummary(Collection $grades): array
     {

@@ -8,8 +8,23 @@ import { Label } from "@/components/ui/label";
 import { Dialog } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { toast } from "sonner";
-import { BookOpen, Plus, Trash2, Edit2, Search, Loader2, AlertCircle, RotateCcw, ChevronDown } from "lucide-react";
+import { BookOpen, Plus, Trash2, Edit2, Search, Loader2, AlertCircle, RotateCcw } from "lucide-react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 interface Subject {
@@ -201,97 +216,92 @@ export const SubjectsManagementPage: React.FC = () => {
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
-              <tr>
-                <th className="px-4 py-3">Code</th>
-                <th className="px-4 py-3">Subject Name</th>
-                <th className="px-4 py-3">Assigned Classroom</th>
-                <th className="px-4 py-3">Instructor</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center">
-                    <div className="space-y-3">
-                      <Skeleton className="h-6 w-full" />
-                      <Skeleton className="h-6 w-full" />
-                      <Skeleton className="h-6 w-3/4" />
-                    </div>
-                  </td>
-                </tr>
-              ) : subjects.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-12 text-center text-slate-400">
-                    <BookOpen className="mx-auto mb-2 h-10 w-10 opacity-30 text-slate-500" />
-                    <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No subjects registered</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Add a subject to start building your academic curriculum.</p>
-                  </td>
-                </tr>
-              ) : (
-                subjects.map((s) => (
-                  <tr
-                    key={s.id}
-                    className="transition-colors hover:bg-slate-50/75 dark:hover:bg-slate-800/40"
-                  >
-                    <td className="px-4 py-3">
-                      <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
-                        {s.code}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Code</TableHead>
+              <TableHead>Subject Name</TableHead>
+              <TableHead>Assigned Classroom</TableHead>
+              <TableHead>Instructor</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="p-8 text-center">
+                  <div className="space-y-3">
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-3/4" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : subjects.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="p-12 text-center text-slate-400">
+                  <BookOpen className="mx-auto mb-2 h-10 w-10 opacity-30 text-slate-500" />
+                  <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No subjects registered</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Add a subject to start building your academic curriculum.</p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              subjects.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell>
+                    <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+                      {s.code}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <span className="font-semibold text-slate-900 dark:text-slate-100">
+                        {s.name}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-                        <span className="font-semibold text-slate-900 dark:text-slate-100">
-                          {s.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-normal text-[11px]">
-                        {s.classroom_name || "Unassigned"}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">
-                      {s.teacher_name || <span className="text-slate-400 italic">None</span>}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => openEditDialog(s)}
-                          disabled={deletingId === s.id}
-                          title="Edit Subject"
-                          className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => handleDelete(s)}
-                          disabled={deletingId === s.id}
-                          className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                          title="Delete Subject"
-                        >
-                          {deletingId === s.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-500" />
-                          ) : (
-                            <Trash2 className="h-3.5 w-3.5" />
-                          )}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-normal text-[11px]">
+                      {s.classroom_name || "Unassigned"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-slate-700 dark:text-slate-300">
+                    {s.teacher_name || <span className="text-slate-400 italic">None</span>}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => openEditDialog(s)}
+                        disabled={deletingId === s.id}
+                        title="Edit Subject"
+                        className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => handleDelete(s)}
+                        disabled={deletingId === s.id}
+                        className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                        title="Delete Subject"
+                      >
+                        {deletingId === s.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-500" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       <Dialog
@@ -337,25 +347,24 @@ export const SubjectsManagementPage: React.FC = () => {
 
           <div className="space-y-1.5">
             <Label htmlFor="s-class" className="text-xs font-medium">Assigned Classroom *</Label>
-            <div className="relative">
-              <select
-                id="s-class"
-                value={classroomId}
-                onChange={(e) => {
-                  setClassroomId(e.target.value);
-                  setFormError(null);
-                }}
-                className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-              >
-                <option value="">Select a classroom...</option>
+            <Select
+              value={classroomId}
+              onValueChange={(val) => {
+                setClassroomId(val);
+                setFormError(null);
+              }}
+            >
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Select a classroom..." />
+              </SelectTrigger>
+              <SelectContent>
                 {classrooms.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <SelectItem key={c.id} value={String(c.id)}>
                     {c.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
-            </div>
+              </SelectContent>
+            </Select>
             {classrooms.length === 0 && (
               <p className="text-xs text-amber-600 dark:text-amber-400">
                 No classrooms available. Please create a classroom first.
@@ -365,22 +374,19 @@ export const SubjectsManagementPage: React.FC = () => {
 
           <div className="space-y-1.5">
             <Label htmlFor="s-teacher" className="text-xs font-medium">Instructing Faculty Member</Label>
-            <div className="relative">
-              <select
-                id="s-teacher"
-                value={teacherId}
-                onChange={(e) => setTeacherId(e.target.value)}
-                className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-              >
-                <option value="">Unassigned</option>
+            <Select value={teacherId} onValueChange={setTeacherId}>
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Unassigned" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Unassigned</SelectItem>
                 {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>
+                  <SelectItem key={t.id} value={String(t.id)}>
                     {t.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
-            </div>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-3">

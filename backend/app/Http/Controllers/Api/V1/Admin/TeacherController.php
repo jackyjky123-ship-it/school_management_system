@@ -22,16 +22,17 @@ class TeacherController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = TeacherProfile::with(['user', 'homeroomClassrooms', 'subjects']);
+        $query = TeacherProfile::with(['user', 'homeroomClassrooms', 'subjects.classroom', 'subjects.teacher.user']);
 
         if ($request->filled('search')) {
             $search = $request->query('search');
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', function ($userQuery) use ($search) {
-                    $userQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                })->orWhere('employee_code', 'like', "%{$search}%")
-                    ->orWhere('specialization', 'like', "%{$search}%");
+            $op = DB::getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($search, $op) {
+                $q->whereHas('user', function ($userQuery) use ($search, $op) {
+                    $userQuery->where('name', $op, "%{$search}%")
+                        ->orWhere('email', $op, "%{$search}%");
+                })->orWhere('employee_code', $op, "%{$search}%")
+                    ->orWhere('specialization', $op, "%{$search}%");
             });
         }
 
@@ -68,7 +69,7 @@ class TeacherController extends Controller
         });
 
         return $this->successResponse(
-            new TeacherResource($teacherProfile->load(['user', 'homeroomClassrooms', 'subjects'])),
+            new TeacherResource($teacherProfile->load(['user', 'homeroomClassrooms', 'subjects.classroom', 'subjects.teacher.user'])),
             'Teacher created successfully',
             201
         );
@@ -77,7 +78,7 @@ class TeacherController extends Controller
     public function show(TeacherProfile $teacher): JsonResponse
     {
         return $this->successResponse(
-            new TeacherResource($teacher->load(['user', 'homeroomClassrooms', 'subjects'])),
+            new TeacherResource($teacher->load(['user', 'homeroomClassrooms', 'subjects.classroom', 'subjects.teacher.user'])),
             'Teacher details retrieved'
         );
     }
@@ -90,7 +91,7 @@ class TeacherController extends Controller
             $userData = array_intersect_key($validated, array_flip(['name', 'email']));
 
             if (! empty($userData)) {
-                $teacher->user->update($userData);
+                $teacher->user?->update($userData);
             }
 
             // Keep explicitly submitted nulls so optional fields can be cleared.
@@ -102,7 +103,7 @@ class TeacherController extends Controller
         });
 
         return $this->successResponse(
-            new TeacherResource($teacher->fresh(['user', 'homeroomClassrooms', 'subjects'])),
+            new TeacherResource($teacher->fresh(['user', 'homeroomClassrooms', 'subjects.classroom', 'subjects.teacher.user'])),
             'Teacher updated successfully'
         );
     }

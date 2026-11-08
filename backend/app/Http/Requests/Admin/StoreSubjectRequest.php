@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\BaseApiRequest;
-use Illuminate\Validation\Rule;
 
 class StoreSubjectRequest extends BaseApiRequest
 {

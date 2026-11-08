@@ -23,7 +23,7 @@ class EndToEndAcademicLifecycleTest extends TestCase
         $this->assertNotEmpty($adminToken);
 
         // Admin verifies dashboard statistics
-        $adminStatsRes = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $adminStatsRes = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->getJson('/api/v1/dashboard/admin');
         $adminStatsRes->assertStatus(200)
             ->assertJson([
@@ -36,7 +36,7 @@ class EndToEndAcademicLifecycleTest extends TestCase
             ]);
 
         // Admin creates a new Classroom
-        $classroomRes = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $classroomRes = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->postJson('/api/v1/admin/classrooms', [
                 'name' => 'Grade 11 - Advanced',
                 'grade_level' => 'Grade 11',
@@ -46,7 +46,7 @@ class EndToEndAcademicLifecycleTest extends TestCase
         $newClassroomId = $classroomRes->json('data.id');
 
         // Admin enrolls a new Student in Grade 11 - Advanced
-        $studentRes = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $studentRes = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->postJson('/api/v1/admin/students', [
                 'name' => 'Miles Morales',
                 'email' => 'miles.morales@school.test',
@@ -62,13 +62,13 @@ class EndToEndAcademicLifecycleTest extends TestCase
         $newStudentProfileId = $studentRes->json('data.id');
 
         // Find teacher Dr. Sarah Jenkins
-        $teachersRes = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $teachersRes = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->getJson('/api/v1/admin/teachers?search=Jenkins');
         $teachersRes->assertStatus(200);
         $teacherJenkinsId = $teachersRes->json('data.0.id');
 
         // Admin assigns a new Subject to Grade 11 - Advanced instructed by Dr. Jenkins
-        $subjectRes = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $subjectRes = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->postJson('/api/v1/admin/subjects', [
                 'name' => 'Quantum Mechanics 11',
                 'code' => 'QM-11',
@@ -79,8 +79,8 @@ class EndToEndAcademicLifecycleTest extends TestCase
         $newSubjectId = $subjectRes->json('data.id');
 
         // Admin assigns Dr. Jenkins as homeroom teacher for Grade 11 - Advanced
-        $this->withHeader('Authorization', 'Bearer ' . $adminToken)
-            ->putJson('/api/v1/admin/classrooms/' . $newClassroomId, [
+        $this->withHeader('Authorization', 'Bearer '.$adminToken)
+            ->putJson('/api/v1/admin/classrooms/'.$newClassroomId, [
                 'name' => 'Grade 11 - Advanced',
                 'grade_level' => 'Grade 11',
                 'academic_year' => '2026-2027',
@@ -101,7 +101,7 @@ class EndToEndAcademicLifecycleTest extends TestCase
 
         // Teacher records roll call attendance for Grade 11 - Advanced
         $todayDate = now()->toDateString();
-        $attendanceRes = $this->withHeader('Authorization', 'Bearer ' . $teacherToken)
+        $attendanceRes = $this->withHeader('Authorization', 'Bearer '.$teacherToken)
             ->postJson('/api/v1/attendances/batch', [
                 'classroom_id' => $newClassroomId,
                 'date' => $todayDate,
@@ -116,7 +116,7 @@ class EndToEndAcademicLifecycleTest extends TestCase
         $attendanceRes->assertStatus(200);
 
         // Teacher submits Midterm Grade for Miles Morales in Quantum Mechanics 11
-        $gradeRes = $this->withHeader('Authorization', 'Bearer ' . $teacherToken)
+        $gradeRes = $this->withHeader('Authorization', 'Bearer '.$teacherToken)
             ->postJson('/api/v1/grades/batch', [
                 'subject_id' => $newSubjectId,
                 'term' => 'Semester 1',
@@ -144,7 +144,7 @@ class EndToEndAcademicLifecycleTest extends TestCase
 
         // Miles fetches his personalized student dashboard
         $this->app['auth']->forgetGuards();
-        $studentMetricsRes = $this->withHeader('Authorization', 'Bearer ' . $studentToken)
+        $studentMetricsRes = $this->withHeader('Authorization', 'Bearer '.$studentToken)
             ->getJson('/api/v1/dashboard/student');
 
         $studentMetricsRes->assertStatus(200)
@@ -161,7 +161,7 @@ class EndToEndAcademicLifecycleTest extends TestCase
             ]);
 
         // Miles views his full report card
-        $reportCardRes = $this->withHeader('Authorization', 'Bearer ' . $studentToken)
+        $reportCardRes = $this->withHeader('Authorization', 'Bearer '.$studentToken)
             ->getJson('/api/v1/grades');
 
         $reportCardRes->assertStatus(200)

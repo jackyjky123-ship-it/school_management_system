@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\RoleEnums;
 use App\Models\Classroom;
-use App\Models\TeacherProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -15,6 +14,7 @@ class AdminManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $student;
 
     protected function setUp(): void
@@ -37,7 +37,7 @@ class AdminManagementTest extends TestCase
         $token = $this->admin->createToken('admin-token')->plainTextToken;
 
         // 1. Create Classroom
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/v1/admin/classrooms', [
                 'name' => 'Grade 11 - A',
                 'grade_level' => 'Grade 11',
@@ -56,7 +56,7 @@ class AdminManagementTest extends TestCase
         $classroomId = $response->json('data.id');
 
         // 2. List Classrooms
-        $listResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $listResponse = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/v1/admin/classrooms');
 
         $listResponse->assertStatus(200)
@@ -64,8 +64,8 @@ class AdminManagementTest extends TestCase
             ->assertJsonStructure(['data' => [['id', 'name', 'grade_level', 'academic_year']]]);
 
         // 3. Update Classroom
-        $updateResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson('/api/v1/admin/classrooms/' . $classroomId, [
+        $updateResponse = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->putJson('/api/v1/admin/classrooms/'.$classroomId, [
                 'name' => 'Grade 11 - A Honors',
                 'grade_level' => 'Grade 11',
                 'academic_year' => '2026-2027',
@@ -78,8 +78,8 @@ class AdminManagementTest extends TestCase
             ]);
 
         // 4. Delete Classroom
-        $deleteResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->deleteJson('/api/v1/admin/classrooms/' . $classroomId);
+        $deleteResponse = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->deleteJson('/api/v1/admin/classrooms/'.$classroomId);
 
         $deleteResponse->assertStatus(200);
         $this->assertDatabaseMissing('classrooms', ['id' => $classroomId]);
@@ -89,7 +89,7 @@ class AdminManagementTest extends TestCase
     {
         $token = $this->admin->createToken('admin-token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/v1/admin/teachers', [
                 'name' => 'Professor X',
                 'email' => 'profx@school.test',
@@ -124,7 +124,7 @@ class AdminManagementTest extends TestCase
             'academic_year' => '2026-2027',
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/v1/admin/students', [
                 'name' => 'Peter Parker',
                 'email' => 'spidey@school.test',
@@ -157,7 +157,7 @@ class AdminManagementTest extends TestCase
     {
         $studentToken = $this->student->createToken('student-token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $studentToken)
+        $response = $this->withHeader('Authorization', 'Bearer '.$studentToken)
             ->postJson('/api/v1/admin/classrooms', [
                 'name' => 'Hacker Class',
                 'grade_level' => 'Grade 10',

@@ -7,6 +7,7 @@ use App\Enums\RoleEnums;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\Grade;
+use App\Models\Schedule;
 use App\Models\StudentProfile;
 use App\Models\Subject;
 use App\Models\TeacherProfile;
@@ -138,7 +139,68 @@ class DemoSchoolSeeder extends Seeder
             ),
         ];
 
-        // 6. Create Students (20)
+        // 6. Create Weekly Timetable Schedules
+        $scheduleData = [
+            // Classroom A (Monday)
+            ['classroom' => $classroomA, 'subject' => $subjectsA[0], 'teacher' => $teachers[0], 'day' => 'monday', 'start' => '08:00:00', 'end' => '09:30:00', 'room' => 'Room 101'],
+            ['classroom' => $classroomA, 'subject' => $subjectsA[1], 'teacher' => $teachers[1], 'day' => 'monday', 'start' => '09:45:00', 'end' => '11:15:00', 'room' => 'Science Lab 1'],
+            ['classroom' => $classroomA, 'subject' => $subjectsA[2], 'teacher' => $teachers[2], 'day' => 'monday', 'start' => '11:30:00', 'end' => '12:30:00', 'room' => 'Room 101'],
+
+            // Classroom B (Monday)
+            ['classroom' => $classroomB, 'subject' => $subjectsB[1], 'teacher' => $teachers[1], 'day' => 'monday', 'start' => '08:00:00', 'end' => '09:30:00', 'room' => 'Science Lab 2'],
+            ['classroom' => $classroomB, 'subject' => $subjectsB[2], 'teacher' => $teachers[2], 'day' => 'monday', 'start' => '09:45:00', 'end' => '11:15:00', 'room' => 'Room 102'],
+            ['classroom' => $classroomB, 'subject' => $subjectsB[0], 'teacher' => $teachers[0], 'day' => 'monday', 'start' => '11:30:00', 'end' => '12:30:00', 'room' => 'Room 102'],
+
+            // Classroom A (Tuesday)
+            ['classroom' => $classroomA, 'subject' => null, 'teacher' => $teachers[0], 'day' => 'tuesday', 'start' => '08:00:00', 'end' => '08:30:00', 'room' => 'Room 101'],
+            ['classroom' => $classroomA, 'subject' => $subjectsA[2], 'teacher' => $teachers[2], 'day' => 'tuesday', 'start' => '08:45:00', 'end' => '10:15:00', 'room' => 'Room 101'],
+            ['classroom' => $classroomA, 'subject' => $subjectsA[0], 'teacher' => $teachers[0], 'day' => 'tuesday', 'start' => '10:30:00', 'end' => '12:00:00', 'room' => 'Room 101'],
+
+            // Classroom B (Tuesday)
+            ['classroom' => $classroomB, 'subject' => null, 'teacher' => $teachers[1], 'day' => 'tuesday', 'start' => '08:00:00', 'end' => '08:30:00', 'room' => 'Room 102'],
+            ['classroom' => $classroomB, 'subject' => $subjectsB[0], 'teacher' => $teachers[0], 'day' => 'tuesday', 'start' => '08:45:00', 'end' => '10:15:00', 'room' => 'Room 102'],
+            ['classroom' => $classroomB, 'subject' => $subjectsB[1], 'teacher' => $teachers[1], 'day' => 'tuesday', 'start' => '10:30:00', 'end' => '12:00:00', 'room' => 'Science Lab 2'],
+
+            // Classroom A (Wednesday)
+            ['classroom' => $classroomA, 'subject' => $subjectsA[1], 'teacher' => $teachers[1], 'day' => 'wednesday', 'start' => '08:30:00', 'end' => '10:00:00', 'room' => 'Science Lab 1'],
+            ['classroom' => $classroomA, 'subject' => $subjectsA[0], 'teacher' => $teachers[0], 'day' => 'wednesday', 'start' => '10:15:00', 'end' => '11:45:00', 'room' => 'Room 101'],
+
+            // Classroom B (Wednesday)
+            ['classroom' => $classroomB, 'subject' => $subjectsB[0], 'teacher' => $teachers[0], 'day' => 'wednesday', 'start' => '08:30:00', 'end' => '10:00:00', 'room' => 'Room 102'],
+            ['classroom' => $classroomB, 'subject' => $subjectsB[2], 'teacher' => $teachers[2], 'day' => 'wednesday', 'start' => '10:15:00', 'end' => '11:45:00', 'room' => 'Room 102'],
+
+            // Classroom A (Thursday)
+            ['classroom' => $classroomA, 'subject' => $subjectsA[2], 'teacher' => $teachers[2], 'day' => 'thursday', 'start' => '08:00:00', 'end' => '09:30:00', 'room' => 'Room 101'],
+            ['classroom' => $classroomA, 'subject' => $subjectsA[1], 'teacher' => $teachers[1], 'day' => 'thursday', 'start' => '09:45:00', 'end' => '11:15:00', 'room' => 'Science Lab 1'],
+
+            // Classroom B (Thursday)
+            ['classroom' => $classroomB, 'subject' => $subjectsB[0], 'teacher' => $teachers[0], 'day' => 'thursday', 'start' => '08:00:00', 'end' => '09:30:00', 'room' => 'Room 102'],
+            ['classroom' => $classroomB, 'subject' => $subjectsB[2], 'teacher' => $teachers[2], 'day' => 'thursday', 'start' => '09:45:00', 'end' => '11:15:00', 'room' => 'Room 102'],
+
+            // Classroom A (Friday)
+            ['classroom' => $classroomA, 'subject' => $subjectsA[0], 'teacher' => $teachers[0], 'day' => 'friday', 'start' => '08:00:00', 'end' => '09:30:00', 'room' => 'Room 101'],
+            ['classroom' => $classroomA, 'subject' => $subjectsA[2], 'teacher' => $teachers[2], 'day' => 'friday', 'start' => '09:45:00', 'end' => '11:15:00', 'room' => 'Room 101'],
+
+            // Classroom B (Friday)
+            ['classroom' => $classroomB, 'subject' => $subjectsB[1], 'teacher' => $teachers[1], 'day' => 'friday', 'start' => '08:00:00', 'end' => '09:30:00', 'room' => 'Science Lab 2'],
+            ['classroom' => $classroomB, 'subject' => $subjectsB[0], 'teacher' => $teachers[0], 'day' => 'friday', 'start' => '09:45:00', 'end' => '11:15:00', 'room' => 'Room 102'],
+        ];
+
+        $createdSchedules = [];
+        foreach ($scheduleData as $s) {
+            $createdSchedules[] = Schedule::create([
+                'classroom_id' => $s['classroom']->id,
+                'subject_id' => $s['subject'] ? $s['subject']->id : null,
+                'teacher_id' => $s['teacher']->id,
+                'term' => 'Semester 1',
+                'day_of_week' => $s['day'],
+                'start_time' => $s['start'],
+                'end_time' => $s['end'],
+                'room' => $s['room'],
+            ]);
+        }
+
+        // 7. Create Students (20)
         $studentNames = [
             // Classroom A (10)
             ['Alex Morgan', 'male', 'student@school.test'],
@@ -185,10 +247,10 @@ class DemoSchoolSeeder extends Seeder
                     'student_code' => $code,
                     'classroom_id' => $class->id,
                     'gender' => $gender,
-                    'date_of_birth' => '2010-05-' . sprintf('%02d', ($index % 25) + 1),
+                    'date_of_birth' => '2010-05-'.sprintf('%02d', ($index % 25) + 1),
                     'guardian_name' => "Guardian of $name",
-                    'guardian_phone' => '+1-555-' . sprintf('%04d', 2000 + $index),
-                    'address' => (100 + $index) . ' Academy Boulevard, Metro City',
+                    'guardian_phone' => '+1-555-'.sprintf('%04d', 2000 + $index),
+                    'address' => (100 + $index).' Academy Boulevard, Metro City',
                 ]
             );
             $studentProfiles[] = $profile;
@@ -198,7 +260,7 @@ class DemoSchoolSeeder extends Seeder
         $schoolDays = [];
         $currentDate = Carbon::now()->subDays(30);
         while (count($schoolDays) < 20 && $currentDate->lessThanOrEqualTo(Carbon::now())) {
-            if (!$currentDate->isWeekend()) {
+            if (! $currentDate->isWeekend()) {
                 $schoolDays[] = $currentDate->toDateString();
             }
             $currentDate->addDay();
@@ -236,6 +298,32 @@ class DemoSchoolSeeder extends Seeder
                         'remarks' => $status === AttendanceStatusEnum::ABSENT ? 'Parent notified' : null,
                     ]
                 );
+            }
+        }
+
+        // Also seed course session attendance for the last 5 school days
+        $recentDays = array_slice($schoolDays, -5);
+        foreach ($studentProfiles as $index => $student) {
+            $classSubjects = $student->classroom_id === $classroomA->id ? $subjectsA : $subjectsB;
+            foreach ($recentDays as $dayIndex => $dateStr) {
+                foreach ($classSubjects as $subIndex => $subject) {
+                    $statusIndex = ($index + $dayIndex + $subIndex) % count($statuses);
+                    $status = $statuses[$statusIndex];
+
+                    Attendance::updateOrCreate(
+                        [
+                            'student_id' => $student->id,
+                            'date' => $dateStr,
+                            'subject_id' => $subject->id,
+                        ],
+                        [
+                            'classroom_id' => $student->classroom_id,
+                            'status' => $status->value,
+                            'recorded_by' => $subject->teacher?->user_id ?? $adminUser->id,
+                            'remarks' => $status === AttendanceStatusEnum::ABSENT ? 'Illness reported' : null,
+                        ]
+                    );
+                }
             }
         }
 

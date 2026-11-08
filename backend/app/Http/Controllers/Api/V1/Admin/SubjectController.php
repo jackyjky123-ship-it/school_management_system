@@ -29,9 +29,10 @@ class SubjectController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->query('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
+            $op = DB::getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($search, $op) {
+                $q->where('name', $op, "%{$search}%")
+                    ->orWhere('code', $op, "%{$search}%");
             });
         }
 

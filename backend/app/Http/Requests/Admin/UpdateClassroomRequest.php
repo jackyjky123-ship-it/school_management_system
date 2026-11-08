@@ -3,14 +3,15 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\BaseApiRequest;
+use App\Models\Classroom;
 use Illuminate\Validation\Rule;
 
 class UpdateClassroomRequest extends BaseApiRequest
 {
     public function rules(): array
     {
-        $classroomId = $this->route('classroom') instanceof \App\Models\Classroom 
-            ? $this->route('classroom')->id 
+        $classroomId = $this->route('classroom') instanceof Classroom
+            ? $this->route('classroom')->id
             : $this->route('classroom');
 
         return [

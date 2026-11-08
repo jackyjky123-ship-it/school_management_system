@@ -22,6 +22,13 @@ class BatchStoreAttendanceRequest extends BaseApiRequest
                     fn ($query) => $query->where('classroom_id', $classroomId)
                 ),
             ],
+            'schedule_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('schedules', 'id')->where(
+                    fn ($query) => $query->where('classroom_id', $classroomId)
+                ),
+            ],
             'date' => ['required', 'date'],
             'records' => ['required', 'array', 'min:1'],
             'records.*.student_id' => [

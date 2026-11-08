@@ -37,7 +37,8 @@ class AuthController extends Controller
             return $this->errorResponse('Your account is currently disabled.', 403);
         }
 
-        $user->tokens()->delete(); // Keep single session per user for demo simplicity
+        // Clean up stale tokens while allowing active multi-tab/concurrent demo review sessions
+        $user->tokens()->where('created_at', '<', now()->subHours(24))->delete();
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->successResponse([
@@ -81,8 +82,8 @@ class AuthController extends Controller
             return $this->errorResponse("No active demo user found for role: {$roleEnum->value}", 404);
         }
 
-        // Keep the demo session single-use per account, matching the password login flow.
-        $user->tokens()->delete();
+        // Clean up stale tokens while allowing active multi-tab/concurrent demo review sessions
+        $user->tokens()->where('created_at', '<', now()->subHours(24))->delete();
         $token = $user->createToken('demo_token')->plainTextToken;
 
         return $this->successResponse([

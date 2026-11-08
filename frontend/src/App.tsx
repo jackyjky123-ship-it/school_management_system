@@ -7,6 +7,7 @@ import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import {
   AdminDashboardPage,
   ClassroomsManagementPage,
+  ClassroomHubPage,
   SubjectsManagementPage,
   TeachersManagementPage,
   StudentsManagementPage,
@@ -14,10 +15,12 @@ import {
 import {
   TeacherDashboardPage,
   DailyAttendancePage,
+  TeacherSchedulePage,
   BulkGradingPage,
 } from "@/features/teacher";
 import {
   StudentDashboardPage,
+  StudentSchedulePage,
   StudentReportCardPage,
   StudentAttendancePage,
 } from "@/features/student";
@@ -27,7 +30,7 @@ const RootRedirect: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
       </div>
     );
@@ -58,6 +61,7 @@ export default function App() {
             <Route path="/admin" element={<AppShell />}>
               <Route index element={<AdminDashboardPage />} />
               <Route path="classrooms" element={<ClassroomsManagementPage />} />
+              <Route path="classrooms/:id" element={<ClassroomHubPage />} />
               <Route path="subjects" element={<SubjectsManagementPage />} />
               <Route path="teachers" element={<TeachersManagementPage />} />
               <Route path="students" element={<StudentsManagementPage />} />
@@ -68,6 +72,7 @@ export default function App() {
           <Route element={<ProtectedRoute allowedRoles={["teacher"]} />}>
             <Route path="/teacher" element={<AppShell />}>
               <Route index element={<TeacherDashboardPage />} />
+              <Route path="schedule" element={<TeacherSchedulePage />} />
               <Route path="attendance" element={<DailyAttendancePage />} />
               <Route path="grades" element={<BulkGradingPage />} />
             </Route>
@@ -77,6 +82,7 @@ export default function App() {
           <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
             <Route path="/student" element={<AppShell />}>
               <Route index element={<StudentDashboardPage />} />
+              <Route path="schedule" element={<StudentSchedulePage />} />
               <Route path="report-card" element={<StudentReportCardPage />} />
               <Route path="attendance" element={<StudentAttendancePage />} />
             </Route>

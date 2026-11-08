@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   Award,
   CalendarCheck,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,12 +34,14 @@ export const SidebarNav: React.FC<{ onItemClick?: () => void }> = ({ onItemClick
 
   const teacherNav: NavItem[] = [
     { title: "Dashboard", href: "/teacher", icon: LayoutDashboard },
+    { title: "Teaching Schedule", href: "/teacher/schedule", icon: Calendar },
     { title: "Daily Roll Call", href: "/teacher/attendance", icon: ClipboardCheck },
     { title: "Bulk Grading", href: "/teacher/grades", icon: Award },
   ];
 
   const studentNav: NavItem[] = [
     { title: "Academic Overview", href: "/student", icon: LayoutDashboard },
+    { title: "Class Timetable", href: "/student/schedule", icon: Calendar },
     { title: "Report Card", href: "/student/report-card", icon: Award },
     { title: "Attendance Log", href: "/student/attendance", icon: CalendarCheck },
   ];

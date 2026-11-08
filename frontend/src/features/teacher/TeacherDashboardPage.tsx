@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 interface TeacherDashboardData {
+  has_homeroom_assigned?: boolean;
   today_roll_call_completed: boolean;
   assigned_classrooms: Array<{
     id: number;
@@ -89,68 +90,104 @@ export const TeacherDashboardPage: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Hero Roll-Call Status Banner */}
-      <div
-        className={`rounded-xl border p-5 shadow-xs transition-colors ${
-          data.today_roll_call_completed
-            ? "border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-emerald-950/30"
-            : "border-amber-200 bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/30"
-        }`}
-      >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3.5">
-            <div
-              className={`rounded-lg p-2.5 ${
-                data.today_roll_call_completed
-                  ? "bg-emerald-600 text-white"
-                  : "bg-amber-600 text-white"
-              }`}
-            >
-              {data.today_roll_call_completed ? (
-                <CheckCircle2 className="h-5 w-5" />
-              ) : (
-                <AlertCircle className="h-5 w-5" />
-              )}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                  {data.today_roll_call_completed
-                    ? "Today's Attendance Recorded"
-                    : "Daily Roll Call Pending"}
-                </h2>
-                <Badge
-                  className={
-                    data.today_roll_call_completed
-                      ? "bg-emerald-600 text-white font-semibold text-[10px] uppercase"
-                      : "bg-amber-600 text-white font-semibold text-[10px] uppercase"
-                  }
-                >
-                  {data.today_roll_call_completed ? "Completed" : "Action Required"}
-                </Badge>
+      {data.assigned_classrooms.length > 0 ? (
+        <div
+          className={`rounded-xl border p-5 shadow-xs transition-colors ${
+            data.today_roll_call_completed
+              ? "border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-emerald-950/30"
+              : "border-amber-200 bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/30"
+          }`}
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3.5">
+              <div
+                className={`rounded-lg p-2.5 ${
+                  data.today_roll_call_completed
+                    ? "bg-emerald-600 text-white"
+                    : "bg-amber-600 text-white"
+                }`}
+              >
+                {data.today_roll_call_completed ? (
+                  <CheckCircle2 className="h-5 w-5" />
+                ) : (
+                  <AlertCircle className="h-5 w-5" />
+                )}
               </div>
-              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                {data.today_roll_call_completed
-                  ? "All homeroom student attendance logs for today have been officially recorded."
-                  : "You have not yet submitted today's daily homeroom attendance roll call."}
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                    {data.today_roll_call_completed
+                      ? "Today's Attendance Recorded"
+                      : "Daily Roll Call Pending"}
+                  </h2>
+                  <Badge
+                    className={
+                      data.today_roll_call_completed
+                        ? "bg-emerald-600 text-white font-semibold text-[10px] uppercase"
+                        : "bg-amber-600 text-white font-semibold text-[10px] uppercase"
+                    }
+                  >
+                    {data.today_roll_call_completed ? "Completed" : "Action Required"}
+                  </Badge>
+                </div>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                  {data.today_roll_call_completed
+                    ? "All homeroom student attendance logs for today have been officially recorded."
+                    : "You have not yet submitted today's daily homeroom attendance roll call."}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <Link
-            to="/teacher/attendance"
-            className={cn(
-              buttonVariants({ size: "sm" }),
-              "shrink-0 font-medium text-xs",
-              data.today_roll_call_completed
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                : "bg-amber-600 hover:bg-amber-700 text-white"
-            )}
-          >
-            <ClipboardCheck className="mr-1.5 h-4 w-4" />
-            {data.today_roll_call_completed ? "Review Roster" : "Open Roll Call"}
-          </Link>
+            <Link
+              to="/teacher/attendance"
+              className={cn(
+                buttonVariants({ size: "sm" }),
+                "shrink-0 font-medium text-xs",
+                data.today_roll_call_completed
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  : "bg-amber-600 hover:bg-amber-700 text-white"
+              )}
+            >
+              <ClipboardCheck className="mr-1.5 h-4 w-4" />
+              {data.today_roll_call_completed ? "Review Roster" : "Open Roll Call"}
+            </Link>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-5 shadow-xs dark:border-indigo-900/50 dark:bg-indigo-950/20">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3.5">
+              <div className="rounded-lg p-2.5 bg-indigo-600 text-white">
+                <School className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                    Course Instructor Portal
+                  </h2>
+                  <Badge className="bg-indigo-600 text-white font-semibold text-[10px] uppercase">
+                    Active Faculty
+                  </Badge>
+                </div>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                  You are assigned as a course educator across {data.assigned_subjects.length} subjects. Homeroom daily roll calls are managed by designated homeroom educators.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              to="/teacher/grades"
+              className={cn(
+                buttonVariants({ size: "sm" }),
+                "shrink-0 font-medium text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+              )}
+            >
+              <Award className="mr-1.5 h-4 w-4" />
+              Open Gradebook
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Main Grid: Academic Courses & Recent Evaluations */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

@@ -30,11 +30,12 @@ class StudentController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->query('search');
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', function ($userQuery) use ($search) {
-                    $userQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                })->orWhere('student_code', 'like', "%{$search}%");
+            $op = DB::getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($search, $op) {
+                $q->whereHas('user', function ($userQuery) use ($search, $op) {
+                    $userQuery->where('name', $op, "%{$search}%")
+                        ->orWhere('email', $op, "%{$search}%");
+                })->orWhere('student_code', $op, "%{$search}%");
             });
         }
 
@@ -96,7 +97,7 @@ class StudentController extends Controller
             $userData = array_intersect_key($validated, array_flip(['name', 'email']));
 
             if (! empty($userData)) {
-                $student->user->update($userData);
+                $student->user?->update($userData);
             }
 
             // Keep explicitly submitted nulls so optional fields can be cleared.

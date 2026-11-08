@@ -7,6 +7,7 @@ use App\Http\Requests\Attendance\BatchStoreAttendanceRequest;
 use App\Http\Resources\AttendanceResource;
 use App\Models\Attendance;
 use App\Models\Classroom;
+use App\Models\Schedule;
 use App\Models\Subject;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -79,9 +80,18 @@ class AttendanceController extends Controller
         $validated = $request->validated();
         $classroomId = $validated['classroom_id'];
         $subjectId = $validated['subject_id'] ?? null;
+        $scheduleId = $validated['schedule_id'] ?? null;
         $date = $validated['date'];
 
-        // Authorization check: Admin has full access, Teacher must be homeroom or subject teacher
+        // If schedule_id is provided, auto-fill subject_id if not explicitly provided
+        if ($scheduleId && ! $subjectId) {
+            $schedule = Schedule::find($scheduleId);
+            if ($schedule && $schedule->subject_id) {
+                $subjectId = $schedule->subject_id;
+            }
+        }
+
+        // Authorization check: Admin has full access, Teacher must be homeroom, subject, or schedule teacher
         if (! $user->hasRole('admin')) {
             if (! $user->hasRole('teacher') || ! $user->teacherProfile) {
                 return $this->errorResponse('Unauthorized to record attendance', 403);
@@ -89,7 +99,18 @@ class AttendanceController extends Controller
 
             $teacherProfileId = $user->teacherProfile->id;
 
-            if ($subjectId) {
+            if ($scheduleId) {
+                $schedule = Schedule::with('subject')->find($scheduleId);
+                $authorized = $schedule && (
+                    $schedule->teacher_id === $teacherProfileId ||
+                    ($schedule->subject && $schedule->subject->teacher_id === $teacherProfileId) ||
+                    ($schedule->classroom && $schedule->classroom->homeroom_teacher_id === $teacherProfileId)
+                );
+
+                if (! $authorized) {
+                    return $this->errorResponse('You are not authorized to take attendance for this schedule slot', 403);
+                }
+            } elseif ($subjectId) {
                 $subject = Subject::find($subjectId);
                 if (! $subject || $subject->teacher_id !== $teacherProfileId) {
                     return $this->errorResponse('You are not authorized to take attendance for this subject', 403);
@@ -102,7 +123,7 @@ class AttendanceController extends Controller
             }
         }
 
-        DB::transaction(function () use ($validated, $classroomId, $subjectId, $date, $user) {
+        DB::transaction(function () use ($validated, $classroomId, $subjectId, $scheduleId, $date, $user) {
             foreach ($validated['records'] as $record) {
                 Attendance::updateOrCreate(
                     [
@@ -112,6 +133,7 @@ class AttendanceController extends Controller
                     ],
                     [
                         'classroom_id' => $classroomId,
+                        'schedule_id' => $scheduleId,
                         'status' => $record['status'],
                         'remarks' => $record['remarks'] ?? null,
                         'recorded_by' => $user->id,

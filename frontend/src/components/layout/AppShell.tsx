@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { SidebarNav } from "./SidebarNav";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import {
   GraduationCap,
   LogOut,
@@ -23,7 +25,14 @@ export const AppShell: React.FC = () => {
   const { user, role, logout, demoLogin, isLoading } = useAuth();
   const { setTheme, resolvedTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && resolvedTheme === "dark";
 
   const handleRoleQuickSwitch = async (targetRole: Role) => {
     try {
@@ -67,7 +76,7 @@ export const AppShell: React.FC = () => {
     <div className="flex h-screen overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 print:h-auto print:overflow-visible print:bg-white">
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-col bg-slate-950 text-slate-200 border-r border-slate-800/80 md:flex print:hidden">
-        {/* Brand Header - Solid indigo badge, no gradients */}
+        {/* Brand Header */}
         <div className="flex h-16 items-center gap-3 px-5 border-b border-slate-800/80">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs">
             <GraduationCap className="h-5 w-5" />
@@ -148,9 +157,11 @@ export const AppShell: React.FC = () => {
         {/* User Footer Profile */}
         <div className="flex items-center justify-between border-t border-slate-800/80 p-3 bg-slate-900/60">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 font-bold text-xs text-slate-200">
-              {getUserInitials(user?.name)}
-            </div>
+            <Avatar size="sm" className="border-slate-700 bg-slate-800">
+              <AvatarFallback className="bg-slate-800 text-slate-200">
+                {getUserInitials(user?.name)}
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold text-white">
                 {user?.name || "Academic User"}
@@ -238,6 +249,21 @@ export const AppShell: React.FC = () => {
                   Student
                 </Button>
               </div>
+
+              <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <span className="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
+                  {isDark ? <Moon className="h-3.5 w-3.5 text-indigo-400" /> : <Sun className="h-3.5 w-3.5 text-amber-400" />}
+                  Appearance
+                </span>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  onClick={() => setTheme(isDark ? "light" : "dark")}
+                  className="text-xs bg-slate-900 border-slate-800 text-slate-200 hover:text-white"
+                >
+                  {isDark ? "Switch to Light" : "Switch to Dark"}
+                </Button>
+              </div>
             </div>
           </aside>
         </div>
@@ -317,14 +343,19 @@ export const AppShell: React.FC = () => {
               {role}
             </Badge>
 
+            <div className="hidden sm:block h-5">
+              <Separator orientation="vertical" />
+            </div>
+
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              aria-label="Toggle dark theme"
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+              title={isDark ? "Switch to light theme" : "Switch to dark theme"}
               className="rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800"
             >
-              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
 
             <Button

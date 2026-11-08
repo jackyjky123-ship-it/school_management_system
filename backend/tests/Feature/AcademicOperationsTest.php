@@ -19,12 +19,19 @@ class AcademicOperationsTest extends TestCase
     use RefreshDatabase;
 
     protected User $teacherUserA;
+
     protected TeacherProfile $teacherA;
+
     protected User $teacherUserB;
+
     protected TeacherProfile $teacherB;
+
     protected Classroom $classroom;
+
     protected Subject $subjectA;
+
     protected StudentProfile $student1;
+
     protected StudentProfile $student2;
 
     protected function setUp(): void
@@ -108,7 +115,7 @@ class AcademicOperationsTest extends TestCase
             ],
         ];
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/v1/attendances/batch', $payload);
 
         $response->assertStatus(200)
@@ -126,7 +133,7 @@ class AcademicOperationsTest extends TestCase
 
         // Update student 2 to 'late'
         $payload['records'][1]['status'] = 'late';
-        $updateResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $updateResponse = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/v1/attendances/batch', $payload);
 
         $updateResponse->assertStatus(200);
@@ -160,7 +167,7 @@ class AcademicOperationsTest extends TestCase
             ],
         ];
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/v1/grades/batch', $payload);
 
         $response->assertStatus(200)
@@ -190,7 +197,7 @@ class AcademicOperationsTest extends TestCase
             ],
         ];
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $tokenB)
+        $response = $this->withHeader('Authorization', 'Bearer '.$tokenB)
             ->postJson('/api/v1/grades/batch', $payload);
 
         $response->assertStatus(403);
@@ -198,7 +205,7 @@ class AcademicOperationsTest extends TestCase
 
     public function test_academic_calculation_service_computes_letter_grades_and_gpa(): void
     {
-        $service = new AcademicCalculationService();
+        $service = new AcademicCalculationService;
 
         // Check Letter Grade mappings
         $this->assertEquals('A', $service->getLetterGrade(95.0));

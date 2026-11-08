@@ -98,17 +98,19 @@ class DashboardController extends Controller
             ->unique();
 
         // Complete only when every homeroom student has a homeroom record today.
-        $hasTakenAttendanceToday = $homeroomIds->isNotEmpty()
+        $hasHomeroomAssigned = $homeroomClasses->isNotEmpty();
+        $hasTakenAttendanceToday = $hasHomeroomAssigned
             && $homeroomStudentIds->isNotEmpty()
             && $homeroomStudentIds->diff($recordedStudentIds)->isEmpty();
 
-        $recentGrades = Grade::with(['student.user', 'subject'])
+        $recentGrades = Grade::with(['student.user', 'subject', 'grader'])
             ->where('graded_by', $user->id)
             ->latest()
             ->take(6)
             ->get();
 
         return $this->successResponse([
+            'has_homeroom_assigned' => $hasHomeroomAssigned,
             'today_roll_call_completed' => $hasTakenAttendanceToday,
             'assigned_classrooms' => $homeroomClasses->map(fn ($c) => [
                 'id' => $c->id,
@@ -140,7 +142,7 @@ class DashboardController extends Controller
         }
 
         // Grades calculation
-        $grades = $student->grades()->with(['subject', 'grader'])->latest()->get();
+        $grades = $student->grades()->with(['subject', 'grader', 'student.user'])->latest()->get();
         $gradeSummary = $this->calculationService->calculateStudentSummary($grades);
 
         // Attendance calculation: homeroom records represent one school day each.

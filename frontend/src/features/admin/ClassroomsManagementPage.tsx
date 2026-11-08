@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/axios";
 import { ApiResponse } from "@/types/auth";
@@ -7,7 +8,18 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClassroomDialog } from "./components/ClassroomDialog";
 import { toast } from "sonner";
-import { School, Plus, Edit2, Trash2, BookOpen, GraduationCap, AlertCircle, Loader2, RotateCcw } from "lucide-react";
+import {
+  School,
+  Plus,
+  Edit2,
+  Trash2,
+  BookOpen,
+  GraduationCap,
+  AlertCircle,
+  Loader2,
+  RotateCcw,
+  ArrowRight,
+} from "lucide-react";
 
 interface Classroom {
   id: number;
@@ -190,6 +202,19 @@ export const ClassroomsManagementPage: React.FC = () => {
                     <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     {c.subjects_count ?? 0} Subjects
                   </span>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <Link to={`/admin/classrooms/${c.id}`}>
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="w-full justify-between text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/30"
+                    >
+                      <span>Classroom Hub</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

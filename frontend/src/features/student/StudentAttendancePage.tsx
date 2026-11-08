@@ -7,6 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
   CalendarCheck,
   CheckCircle2,
   Clock,
@@ -14,7 +29,6 @@ import {
   ShieldAlert,
   AlertCircle,
   RotateCcw,
-  ChevronDown,
 } from "lucide-react";
 import { formatDateOnly } from "@/lib/date";
 
@@ -38,7 +52,7 @@ export const StudentAttendancePage: React.FC = () => {
   } = useQuery<AttendanceRecord[]>({
     queryKey: ["student-full-attendance"],
     queryFn: async () => {
-      const res = await apiClient.get<ApiResponse<AttendanceRecord[]>>("/attendances");
+      const res = await apiClient.get<ApiResponse<AttendanceRecord[]>>("/attendances?homeroom=1");
       return res.data.data;
     },
   });
@@ -53,7 +67,7 @@ export const StudentAttendancePage: React.FC = () => {
   ).length;
   const absentCount = attendanceList.filter((a) => a.status === "absent").length;
   const attendanceRate =
-    totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : 100;
+    totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : 0;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -103,19 +117,19 @@ export const StudentAttendancePage: React.FC = () => {
           </p>
         </div>
 
-        <div className="relative sm:w-48">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-          >
-            <option value="">All Statuses</option>
-            <option value="present">Present Only</option>
-            <option value="late">Late Only</option>
-            <option value="absent">Absent Only</option>
-            <option value="excused">Excused Only</option>
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-2 h-3.5 w-3.5 text-slate-400" />
+        <div className="w-full sm:w-48">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="present">Present Only</SelectItem>
+              <SelectItem value="late">Late Only</SelectItem>
+              <SelectItem value="absent">Absent Only</SelectItem>
+              <SelectItem value="excused">Excused Only</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -175,67 +189,62 @@ export const StudentAttendancePage: React.FC = () => {
 
       {/* Attendance History Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
-              <tr>
-                <th className="px-4 py-3">Calendar Date</th>
-                <th className="px-4 py-3">Recorded Status</th>
-                <th className="px-4 py-3">Remarks / Reason</th>
-                <th className="px-4 py-3">Recorded By</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center">
-                    <div className="space-y-3">
-                      <Skeleton className="h-6 w-full" />
-                      <Skeleton className="h-6 w-full" />
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredList.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="p-12 text-center text-slate-400">
-                    <CalendarCheck className="mx-auto mb-2 h-10 w-10 opacity-30 text-slate-500" />
-                    <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">
-                      {statusFilter
-                        ? "No attendance entries match this filter"
-                        : "No attendance entries recorded yet"}
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                filteredList.map((record) => {
-                  const formattedDate = formatDateOnly(record.date, {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  });
-                  return (
-                    <tr
-                      key={record.id}
-                      className="transition-colors hover:bg-slate-50/75 dark:hover:bg-slate-800/40"
-                    >
-                      <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100 tabular-nums">
-                        {formattedDate}
-                      </td>
-                      <td className="px-4 py-3">{getStatusBadge(record.status)}</td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                        {record.remarks || <span className="text-slate-400 italic">Official Roll Call</span>}
-                      </td>
-                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
-                        {record.recorded_by_name || "Homeroom Teacher"}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Calendar Date</TableHead>
+              <TableHead>Recorded Status</TableHead>
+              <TableHead>Remarks / Reason</TableHead>
+              <TableHead>Recorded By</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="p-8 text-center">
+                  <div className="space-y-3">
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-full" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredList.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="p-12 text-center text-slate-400">
+                  <CalendarCheck className="mx-auto mb-2 h-10 w-10 opacity-30 text-slate-500" />
+                  <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">
+                    {statusFilter
+                      ? "No attendance entries match this filter"
+                      : "No attendance entries recorded yet"}
+                  </p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredList.map((record) => {
+                const formattedDate = formatDateOnly(record.date, {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                });
+                return (
+                  <TableRow key={record.id}>
+                    <TableCell className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">
+                      {formattedDate}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(record.status)}</TableCell>
+                    <TableCell className="text-slate-600 dark:text-slate-400">
+                      {record.remarks || <span className="text-slate-400 italic">Official Roll Call</span>}
+                    </TableCell>
+                    <TableCell className="text-slate-500 dark:text-slate-400">
+                      {record.recorded_by_name || "Homeroom Teacher"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

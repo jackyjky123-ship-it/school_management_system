@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DemoSwitcher } from "./components/DemoSwitcher";
-import { GraduationCap, Lock, Mail, Loader2, Eye, EyeOff } from "lucide-react";
+import { GraduationCap, Lock, Mail, Loader2, Eye, EyeOff, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -20,9 +21,17 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginPage: React.FC = () => {
   const { login, isLoading } = useAuth();
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
   const navigate = useNavigate();
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [showPassword, setShowPassword] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && resolvedTheme === "dark";
 
   const {
     register,
@@ -53,7 +62,27 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950 sm:p-8">
+    <div className="relative flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950 sm:p-8">
+      {/* Theme Toggle Button */}
+      <div className="absolute top-4 right-4">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+          title={isDark ? "Switch to light theme" : "Switch to dark theme"}
+          className="h-8 gap-1.5 rounded-lg border-slate-200 bg-white/90 px-2.5 text-xs text-slate-600 shadow-2xs backdrop-blur-xs hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+        >
+          {isDark ? (
+            <Sun className="h-3.5 w-3.5 text-amber-400" />
+          ) : (
+            <Moon className="h-3.5 w-3.5 text-indigo-500" />
+          )}
+          <span className="hidden sm:inline font-medium">{isDark ? "Light" : "Dark"}</span>
+        </Button>
+      </div>
+
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">

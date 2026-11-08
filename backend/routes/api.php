@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClassroomRosterController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\GradeController;
+use App\Http\Controllers\Api\V1\ScheduleController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -67,13 +68,19 @@ Route::prefix('v1')->group(function () {
         // Grade Endpoints
         Route::get('/grades', [GradeController::class, 'index']);
         Route::post('/grades/batch', [GradeController::class, 'batchStore']);
+
+        // Schedule Retrieval
+        Route::get('/schedules', [ScheduleController::class, 'index']);
     });
 
     // Admin Management Endpoints
     Route::middleware(['auth:sanctum', 'role:admin,sanctum'])->prefix('admin')->group(function () {
+        Route::get('classrooms/{classroom}/hub', [ClassroomController::class, 'hub']);
+        Route::get('classrooms/{classroom}/attendance-history', [ClassroomController::class, 'attendanceHistory']);
         Route::apiResource('classrooms', ClassroomController::class);
         Route::apiResource('teachers', TeacherController::class);
         Route::apiResource('students', StudentController::class);
         Route::apiResource('subjects', SubjectController::class);
+        Route::apiResource('schedules', ScheduleController::class);
     });
 });

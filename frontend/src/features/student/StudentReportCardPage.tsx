@@ -6,7 +6,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Filter, AlertCircle, RotateCcw, Printer, ChevronDown } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { BookOpen, AlertCircle, RotateCcw, Printer } from "lucide-react";
 
 interface GradeItem {
   id: number;
@@ -66,18 +81,17 @@ export const StudentReportCardPage: React.FC = () => {
 
         {/* Filter and Print Actions */}
         <div className="flex items-center gap-2 print:hidden">
-          <div className="relative">
-            <select
-              value={termFilter}
-              onChange={(e) => setTermFilter(e.target.value)}
-              className="appearance-none rounded-lg border border-slate-200 bg-white pl-8 pr-8 py-1.5 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <option value="">All Academic Terms</option>
-              <option value="Semester 1">Semester 1</option>
-              <option value="Semester 2">Semester 2</option>
-            </select>
-            <Filter className="pointer-events-none absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
+          <div className="w-44">
+            <Select value={termFilter} onValueChange={setTermFilter}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="All Academic Terms" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Academic Terms</SelectItem>
+                <SelectItem value="Semester 1">Semester 1</SelectItem>
+                <SelectItem value="Semester 2">Semester 2</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <Button
@@ -150,86 +164,81 @@ export const StudentReportCardPage: React.FC = () => {
 
       {/* Report Card Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
-              <tr>
-                <th className="px-4 py-3">Course</th>
-                <th className="px-4 py-3">Term</th>
-                <th className="px-4 py-3">Evaluation Type</th>
-                <th className="px-4 py-3">Raw Score</th>
-                <th className="px-4 py-3">Percentage</th>
-                <th className="px-4 py-3">Grade</th>
-                <th className="px-4 py-3">Instructor Notes</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center">
-                    <div className="space-y-3">
-                      <Skeleton className="h-6 w-full" />
-                      <Skeleton className="h-6 w-full" />
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Course</TableHead>
+              <TableHead>Term</TableHead>
+              <TableHead>Evaluation Type</TableHead>
+              <TableHead>Raw Score</TableHead>
+              <TableHead>Percentage</TableHead>
+              <TableHead>Grade</TableHead>
+              <TableHead>Instructor Notes</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="p-8 text-center">
+                  <div className="space-y-3">
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-full" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredGrades.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="p-12 text-center text-slate-400">
+                  <BookOpen className="mx-auto mb-2 h-10 w-10 opacity-30 text-slate-500" />
+                  <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No evaluations found for this term</p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredGrades.map((g) => (
+                <TableRow key={g.id}>
+                  <TableCell>
+                    <div className="font-semibold text-slate-900 dark:text-slate-100">
+                      {g.subject_name}
                     </div>
-                  </td>
-                </tr>
-              ) : filteredGrades.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="p-12 text-center text-slate-400">
-                    <BookOpen className="mx-auto mb-2 h-10 w-10 opacity-30 text-slate-500" />
-                    <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No evaluations found for this term</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredGrades.map((g) => (
-                  <tr
-                    key={g.id}
-                    className="transition-colors hover:bg-slate-50/75 dark:hover:bg-slate-800/40"
-                  >
-                    <td className="px-4 py-3">
-                      <div className="font-semibold text-slate-900 dark:text-slate-100">
-                        {g.subject_name}
-                      </div>
-                      <div className="font-mono text-[10px] text-slate-400">{g.subject_code}</div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{g.term}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 text-[11px] font-normal">
-                        {g.exam_type}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 font-mono tabular-nums">
-                      <span className="font-bold text-slate-900 dark:text-slate-100">{g.score}</span>
-                      <span className="text-slate-400 text-[11px]"> / {g.max_score}</span>
-                    </td>
-                    <td className="px-4 py-3 font-mono font-bold text-slate-800 dark:text-slate-200 tabular-nums">
-                      {g.percentage}%
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge
-                        variant="outline"
-                        className={
-                          g.letter_grade === "A"
-                            ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold font-mono text-xs"
-                            : g.letter_grade === "B"
-                            ? "border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 font-bold font-mono text-xs"
-                            : g.letter_grade === "F"
-                            ? "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 font-bold font-mono text-xs"
-                            : "border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold font-mono text-xs"
-                        }
-                      >
-                        {g.letter_grade}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-500 max-w-xs">
-                      {g.remarks || <span className="text-slate-400 italic">No notes</span>}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    <div className="font-mono text-[10px] text-slate-400">{g.subject_code}</div>
+                  </TableCell>
+                  <TableCell className="text-slate-600 dark:text-slate-300">{g.term}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 text-[11px] font-normal">
+                      {g.exam_type}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-mono tabular-nums">
+                    <span className="font-bold text-slate-900 dark:text-slate-100">{g.score}</span>
+                    <span className="text-slate-400 text-[11px]"> / {g.max_score}</span>
+                  </TableCell>
+                  <TableCell className="font-mono font-bold text-slate-800 dark:text-slate-200 tabular-nums">
+                    {g.percentage}%
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={
+                        g.letter_grade === "A"
+                          ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold font-mono text-xs"
+                          : g.letter_grade === "B"
+                          ? "border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 font-bold font-mono text-xs"
+                          : g.letter_grade === "F"
+                          ? "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 font-bold font-mono text-xs"
+                          : "border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold font-mono text-xs"
+                      }
+                    >
+                      {g.letter_grade}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-slate-500 max-w-xs">
+                    {g.remarks || <span className="text-slate-400 italic">No notes</span>}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

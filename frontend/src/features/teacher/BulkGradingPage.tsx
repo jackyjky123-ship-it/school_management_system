@@ -7,11 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
   GradingSpreadsheetGrid,
   GradeRow,
 } from "./components/GradingSpreadsheetGrid";
 import { toast } from "sonner";
-import { Save, Loader2, BookOpen, AlertCircle, ChevronDown } from "lucide-react";
+import { Save, Loader2, BookOpen, AlertCircle } from "lucide-react";
 
 export const BulkGradingPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -235,62 +242,53 @@ export const BulkGradingPage: React.FC = () => {
           <Label htmlFor="subject" className="text-xs font-medium text-slate-700 dark:text-slate-300">
             Course Subject
           </Label>
-          <div className="relative">
-            <select
-              id="subject"
-              value={selectedSubjectId}
-              onChange={(e) => setSelectedSubjectId(e.target.value)}
-              className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 pr-8 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-            >
+          <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
+            <SelectTrigger id="subject" className="h-8 text-xs">
+              <SelectValue placeholder="Select course..." />
+            </SelectTrigger>
+            <SelectContent>
               {assignedSubjects.length === 0 && (
-                <option value="">No assigned courses</option>
+                <SelectItem value="">No assigned courses</SelectItem>
               )}
               {assignedSubjects.map((s: any) => (
-                <option key={s.id} value={s.id}>
+                <SelectItem key={s.id} value={String(s.id)}>
                   {s.name} ({s.classroom_name})
-                </option>
+                </SelectItem>
               ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
-          </div>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-1">
           <Label htmlFor="term" className="text-xs font-medium text-slate-700 dark:text-slate-300">
             Academic Term
           </Label>
-          <div className="relative">
-            <select
-              id="term"
-              value={selectedTerm}
-              onChange={(e) => setSelectedTerm(e.target.value)}
-              className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 pr-8 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <option value="Semester 1">Semester 1</option>
-              <option value="Semester 2">Semester 2</option>
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
-          </div>
+          <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+            <SelectTrigger id="term" className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Semester 1">Semester 1</SelectItem>
+              <SelectItem value="Semester 2">Semester 2</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-1">
           <Label htmlFor="exam-type" className="text-xs font-medium text-slate-700 dark:text-slate-300">
             Evaluation Type
           </Label>
-          <div className="relative">
-            <select
-              id="exam-type"
-              value={selectedExamType}
-              onChange={(e) => setSelectedExamType(e.target.value)}
-              className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 pr-8 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <option value="Midterm">Midterm Examination</option>
-              <option value="Final">Final Examination</option>
-              <option value="Quiz 1">Quiz 1</option>
-              <option value="Quiz 2">Quiz 2</option>
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
-          </div>
+          <Select value={selectedExamType} onValueChange={setSelectedExamType}>
+            <SelectTrigger id="exam-type" className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Midterm">Midterm Examination</SelectItem>
+              <SelectItem value="Final">Final Examination</SelectItem>
+              <SelectItem value="Quiz 1">Quiz 1</SelectItem>
+              <SelectItem value="Quiz 2">Quiz 2</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-1">

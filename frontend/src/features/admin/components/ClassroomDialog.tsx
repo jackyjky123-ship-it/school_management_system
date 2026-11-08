@@ -6,10 +6,17 @@ import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/axios";
 import { toast } from "sonner";
-import { Loader2, ChevronDown } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const classroomSchema = z.object({
   name: z.string().min(2, "Classroom name is required"),
@@ -39,6 +46,8 @@ export const ClassroomDialog: React.FC<ClassroomDialogProps> = ({
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<ClassroomFormData>({
     resolver: zodResolver(classroomSchema),
@@ -49,6 +58,8 @@ export const ClassroomDialog: React.FC<ClassroomDialogProps> = ({
       homeroom_teacher_id: "",
     },
   });
+
+  const selectedTeacherId = watch("homeroom_teacher_id");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -132,21 +143,22 @@ export const ClassroomDialog: React.FC<ClassroomDialogProps> = ({
 
         <div className="space-y-1.5">
           <Label htmlFor="homeroom_teacher_id" className="text-xs font-medium">Designated Homeroom Teacher</Label>
-          <div className="relative">
-            <select
-              id="homeroom_teacher_id"
-              {...register("homeroom_teacher_id")}
-              className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 pr-8 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <option value="">None / Unassigned</option>
+          <Select
+            value={selectedTeacherId}
+            onValueChange={(val) => setValue("homeroom_teacher_id", val)}
+          >
+            <SelectTrigger id="homeroom_teacher_id" className="h-8.5 text-xs">
+              <SelectValue placeholder="None / Unassigned" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">None / Unassigned</SelectItem>
               {teachers.map((t) => (
-                <option key={t.id} value={t.id}>
+                <SelectItem key={t.id} value={String(t.id)}>
                   {t.name}
-                </option>
+                </SelectItem>
               ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
-          </div>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-4">

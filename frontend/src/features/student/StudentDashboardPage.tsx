@@ -161,6 +161,12 @@ export const StudentDashboardPage: React.FC = () => {
                             ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold font-mono text-xs"
                             : grade.letter_grade === "B"
                             ? "border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 font-bold font-mono text-xs"
+                            : grade.letter_grade === "C"
+                            ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 font-bold font-mono text-xs"
+                            : grade.letter_grade === "D"
+                            ? "border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-300 font-bold font-mono text-xs"
+                            : grade.letter_grade === "F"
+                            ? "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 font-bold font-mono text-xs"
                             : "border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold font-mono text-xs"
                         }
                       >

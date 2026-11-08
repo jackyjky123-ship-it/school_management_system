@@ -6,6 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TeacherFormSheet } from "./components/TeacherFormSheet";
 import { toast } from "sonner";
 import { Search, Plus, Edit2, Trash2, Users, BookOpen, AlertCircle, Loader2, RotateCcw } from "lucide-react";
@@ -138,119 +147,116 @@ export const TeachersManagementPage: React.FC = () => {
 
       {/* Teachers Data Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
-              <tr>
-                <th className="px-4 py-3">Code</th>
-                <th className="px-4 py-3">Instructor</th>
-                <th className="px-4 py-3">Specialization</th>
-                <th className="px-4 py-3">Contact</th>
-                <th className="px-4 py-3">Assignments</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center">
-                    <div className="space-y-3">
-                      <Skeleton className="h-6 w-full" />
-                      <Skeleton className="h-6 w-full" />
-                      <Skeleton className="h-6 w-3/4" />
-                    </div>
-                  </td>
-                </tr>
-              ) : teachers.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-12 text-center text-slate-400">
-                    <Users className="mx-auto mb-2 h-10 w-10 opacity-30" />
-                    <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No faculty members found</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Try adjusting your search criteria or add a new faculty member.</p>
-                  </td>
-                </tr>
-              ) : (
-                teachers.map((t) => (
-                  <tr
-                    key={t.id}
-                    className="transition-colors hover:bg-slate-50/75 dark:hover:bg-slate-800/40"
-                  >
-                    <td className="px-4 py-3">
-                      <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
-                        {t.employee_code}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 font-semibold text-[11px] text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Code</TableHead>
+              <TableHead>Instructor</TableHead>
+              <TableHead>Specialization</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Assignments</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="p-8 text-center">
+                  <div className="space-y-3">
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-3/4" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : teachers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="p-12 text-center text-slate-400">
+                  <Users className="mx-auto mb-2 h-10 w-10 opacity-30" />
+                  <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No faculty members found</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Try adjusting your search criteria or add a new faculty member.</p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              teachers.map((t) => (
+                <TableRow key={t.id}>
+                  <TableCell>
+                    <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+                      {t.employee_code}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2.5">
+                      <Avatar size="sm">
+                        <AvatarFallback className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
                           {getInitials(t.name)}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-slate-900 dark:text-slate-100">{t.name}</div>
-                          <div className="text-[11px] text-slate-400">{t.email}</div>
-                        </div>
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-semibold text-slate-900 dark:text-slate-100">{t.name}</div>
+                        <div className="text-[11px] text-slate-400">{t.email}</div>
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-normal text-[11px]">
-                        {t.specialization}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                      <div className="tabular-nums">{t.phone || "—"}</div>
-                      <div className="text-[10px] text-slate-400">Hired: {t.hire_date || "—"}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {t.subjects && t.subjects.length > 0 ? (
-                          <Badge variant="outline" className="text-[10px] gap-1 border-indigo-200 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300">
-                            <BookOpen className="h-2.5 w-2.5" />
-                            {t.subjects.length} Course(s)
-                          </Badge>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 font-normal text-[11px]">
+                      {t.specialization}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-slate-600 dark:text-slate-400">
+                    <div className="tabular-nums">{t.phone || "—"}</div>
+                    <div className="text-[10px] text-slate-400">Hired: {t.hire_date || "—"}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {t.subjects && t.subjects.length > 0 ? (
+                        <Badge variant="outline" className="text-[10px] gap-1 border-indigo-200 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300">
+                          <BookOpen className="h-2.5 w-2.5" />
+                          {t.subjects.length} Course(s)
+                        </Badge>
+                      ) : (
+                        <span className="text-[11px] text-slate-400">No subjects assigned</span>
+                      )}
+                      {t.homeroom_classrooms && t.homeroom_classrooms.length > 0 && (
+                        <Badge variant="outline" className="text-[10px] border-purple-200 bg-purple-50/70 text-purple-700 dark:border-purple-900/60 dark:bg-purple-950/40 dark:text-purple-300">
+                          Homeroom: {t.homeroom_classrooms[0].name}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => handleEdit(t)}
+                        disabled={deletingId === t.id}
+                        title="Edit Faculty Member"
+                        className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => handleDelete(t)}
+                        disabled={deletingId === t.id}
+                        className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                        title="Delete Faculty Member"
+                      >
+                        {deletingId === t.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-500" />
                         ) : (
-                          <span className="text-[11px] text-slate-400">No subjects assigned</span>
+                          <Trash2 className="h-3.5 w-3.5" />
                         )}
-                        {t.homeroom_classrooms && t.homeroom_classrooms.length > 0 && (
-                          <Badge variant="outline" className="text-[10px] border-purple-200 bg-purple-50/70 text-purple-700 dark:border-purple-900/60 dark:bg-purple-950/40 dark:text-purple-300">
-                            Homeroom: {t.homeroom_classrooms[0].name}
-                          </Badge>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => handleEdit(t)}
-                          disabled={deletingId === t.id}
-                          title="Edit Faculty Member"
-                          className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => handleDelete(t)}
-                          disabled={deletingId === t.id}
-                          className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                          title="Delete Faculty Member"
-                        >
-                          {deletingId === t.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-500" />
-                          ) : (
-                            <Trash2 className="h-3.5 w-3.5" />
-                          )}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       <TeacherFormSheet

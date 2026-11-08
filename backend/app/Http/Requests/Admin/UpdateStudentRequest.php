@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\BaseApiRequest;
+use App\Models\StudentProfile;
 use Illuminate\Validation\Rule;
 
 class UpdateStudentRequest extends BaseApiRequest
@@ -10,8 +11,8 @@ class UpdateStudentRequest extends BaseApiRequest
     public function rules(): array
     {
         $student = $this->route('student');
-        $studentId = $student instanceof \App\Models\StudentProfile ? $student->id : $student;
-        $userId = $student instanceof \App\Models\StudentProfile ? $student->user_id : null;
+        $studentId = $student instanceof StudentProfile ? $student->id : $student;
+        $userId = $student instanceof StudentProfile ? $student->user_id : null;
 
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
